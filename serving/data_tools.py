@@ -10,6 +10,12 @@ import numpy as np
 import torch
 from pymatgen.core import Lattice, Structure
 
+import matgl
+from pymatgen.core import Structure, Lattice, Element
+from pymatgen.io.ase import AseAtomsAdaptor
+
+from matgl.ext.ase import M3GNetCalculator
+from ase.optimize import FIRE, LBFGS, LBFGSLineSearch
 from data.constants import atomic_numbers
 
 
@@ -190,3 +196,156 @@ def tensors_to_structure(abc, angles, atomic, pos, mask, min_dist=0.5):
             continue
 
     return structures
+
+
+def _load_m3gnet_calculator(*, compute_stress: bool = False) -> M3GNetCalculator:
+    #
+    # Load a PES potential that provides energies, forces (and stress if requested)
+    #
+    potential = matgl.load_model("M3GNet-MP-2021.2.8-PES")
+    return M3GNetCalculator(potential=potential, compute_stress=compute_stress)
+
+
+def refine_to_primitive_fast_strong(
+    struct: Structure,
+    *,
+    target_fmax: float = 0.02,
+    max_steps_pos: int = 1100,
+    max_steps_cell: int = 350,
+    do_cell_relax: bool = True,
+    cell_trigger_force: float = 0.12,
+    cell_trigger_strain: float = 0.08,
+    min_dist: float = 0.5,
+    calculator=None,
+) -> Structure:
+
+    # 
+    # Internal calculator cache
+    # 
+    if not hasattr(refine_to_primitive_fast_strong, "_calc_pos"):
+        refine_to_primitive_fast_strong._calc_pos = None
+    if not hasattr(refine_to_primitive_fast_strong, "_calc_cell"):
+        refine_to_primitive_fast_strong._calc_cell = None
+
+    def _get_calc_pos():
+        if calculator is not None:
+            return calculator
+        if refine_to_primitive_fast_strong._calc_pos is None:
+            refine_to_primitive_fast_strong._calc_pos = _load_m3gnet_calculator(compute_stress=False)
+        return refine_to_primitive_fast_strong._calc_pos
+
+    def _get_calc_cell():
+        if refine_to_primitive_fast_strong._calc_cell is None:
+            refine_to_primitive_fast_strong._calc_cell = _load_m3gnet_calculator(compute_stress=True)
+        return refine_to_primitive_fast_strong._calc_cell
+
+    # 
+    # Optional fast validity helpers (safe import)
+    # 
+    _sv = _cv = None
+    try:
+        from optimization.sun import structurally_valid as _sv, compositionally_valid as _cv
+    except Exception:
+        try:
+            # if you have them elsewhere in your repo
+            from data.validation import structurally_valid as _sv, compositionally_valid as _cv
+        except Exception:
+            _sv = _cv = None
+
+    # 
+    # Helpers
+    # 
+    def _max_force(atoms) -> float:
+        f = atoms.get_forces()
+        return float(np.max(np.linalg.norm(f, axis=1)))
+
+    def _cell_is_suspicious(pm_struct) -> bool:
+        try:
+            s_prim = _safe_to_primitive(pm_struct)
+            a = float(pm_struct.lattice.volume)
+            b = float(s_prim.lattice.volume)
+            if a <= 0.0 or b <= 0.0:
+                return True
+            return (abs(a - b) / b) > cell_trigger_strain
+        except Exception:
+            return True
+
+    # 
+    # 0) Canonicalize early
+    # 
+    s0 = struct.get_primitive_structure()
+
+    # 
+    # 1) ASE atoms + positions-only calculator
+    # 
+    atoms = AseAtomsAdaptor.get_atoms(s0)
+    atoms.calc = _get_calc_pos()
+
+    # 
+    # 2) Pre-sanitize
+    # 
+    _puff_if_clashing(atoms, relax_cell=False)
+    if _has_nan_energy_or_forces(atoms):
+        pos = atoms.get_positions()
+        cell = atoms.cell
+        frac = np.linalg.solve(cell.T, pos.T).T
+        frac = _deterministic_nudge_frac(frac, eps=2e-4)
+        atoms.set_positions(np.dot(frac, cell))
+
+    # 
+    # 2.5) Fast bail-out (only if helpers exist)
+    # 
+    if _sv is not None and _cv is not None:
+        pm_now = AseAtomsAdaptor.get_structure(atoms)
+        if (not _sv(pm_now, min_dist=min_dist)) or (not _cv(pm_now)):
+            return _safe_to_primitive(pm_now)
+
+    # 
+    # 3) Positions-only relax: FIRE settle -> LBFGS finish
+    # 
+    n_fire0 = min(220, max_steps_pos)
+    n_fire1 = min(220, max(0, max_steps_pos - n_fire0))
+    n_lbfgs = max(0, max_steps_pos - n_fire0 - n_fire1)
+
+    if n_fire0:
+        FIRE(atoms, maxmove=0.06, logfile=None).run(fmax=0.06, steps=n_fire0)
+    if n_fire1:
+        FIRE(atoms, maxmove=0.035, logfile=None).run(fmax=0.03, steps=n_fire1)
+
+    try:
+        mf = _max_force(atoms)
+    except Exception:
+        mf = float("inf")
+
+    if mf > target_fmax and n_lbfgs:
+        LBFGS(atoms, maxstep=0.04, logfile=None).run(fmax=target_fmax, steps=n_lbfgs)
+
+    # 
+    # 4) Rare, bounded cell relax (gated)
+    # 
+    if do_cell_relax:
+        try:
+            mf2 = _max_force(atoms)
+        except Exception:
+            mf2 = float("inf")
+
+        pm_mid = AseAtomsAdaptor.get_structure(atoms)
+        suspicious = _cell_is_suspicious(pm_mid)
+
+        if (mf2 > cell_trigger_force) or suspicious:
+            atoms.calc = _get_calc_cell()
+            obj = UnitCellFilter(atoms)
+
+            n_fire_c = min(160, max_steps_cell)
+            n_lbfgs_c = max(0, max_steps_cell - n_fire_c)
+
+            if n_fire_c:
+                FIRE(obj, maxmove=0.04, logfile=None).run(fmax=max(3.0 * target_fmax, 0.03), steps=n_fire_c)
+            if n_lbfgs_c:
+                LBFGS(obj, maxstep=0.04, logfile=None).run(fmax=target_fmax, steps=n_lbfgs_c)
+
+    # 
+    # 5) Return primitive
+    # 
+    relaxed = AseAtomsAdaptor.get_structure(atoms)
+    return _safe_to_primitive(relaxed)
