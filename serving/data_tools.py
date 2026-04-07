@@ -229,6 +229,23 @@ def _deterministic_nudge_frac(f: np.ndarray, eps: float = 1e-4) -> np.ndarray:
     return _wrap01(f + bump)
 
 
+def _has_nan_energy_or_forces(atoms) -> bool:
+    #
+    # Detect NaNs from the calculator and avoid line-search blowups
+    #
+    try:
+        e = atoms.get_potential_energy()
+        if not np.isfinite(e):
+            return True
+    except Exception:
+        return True
+    try:
+        F = atoms.get_forces(apply_constraint=False)
+        return not np.isfinite(F).all()
+    except Exception:
+        return True
+
+
 def _puff_if_clashing(atoms, *, min_sep_A: float = 0.7, scale: float = 1.01, relax_cell: bool = False) -> None:
     pos = atoms.get_positions()
     if len(pos) < 2:
