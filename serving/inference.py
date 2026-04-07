@@ -9,7 +9,7 @@ from huggingface_hub import hf_hub_download
 from pymatgen.core import Structure
 
 from models import CliqueFlowmer
-import data.tools as data_tools
+import serving.data_tools as data_tools
 
 
 DEFAULT_MODEL_KWARGS = {
@@ -114,10 +114,7 @@ def structure_to_cif_text(structure: Structure) -> str:
     return structure.to(fmt="cif")
 
 
-def _structures_to_batch(
-    structures: Sequence[Structure],
-    device: Optional[str] = None,
-):
+def _structures_to_batch(structures, device=None):
     abc, angles, atomic, pos, mask = data_tools.unpack_structures(
         list(structures),
         shuffle=False,
