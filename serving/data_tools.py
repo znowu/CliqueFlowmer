@@ -116,7 +116,7 @@ def unpack_structures(structures, shuffle=False):
     )
 
 
-def tensors_to_structures(abc, angles, atomic, pos, mask, min_dist=0.5):
+def tensors_to_structure(abc, angles, atomic, pos, mask, min_dist=0.5):
     """
     Lightweight decoder postprocessing for serving.
 
