@@ -135,7 +135,6 @@ def encode_structure(
     return z[0]
 
 
-@torch.no_grad()
 def decode_latent(
     model: CliqueFlowmer,
     z: Union[np.ndarray, torch.Tensor],
@@ -168,7 +167,6 @@ def decode_latent(
     return structures[0]
 
 
-@torch.no_grad()
 def reconstruct_structure(
     model: CliqueFlowmer,
     structure: Structure,
