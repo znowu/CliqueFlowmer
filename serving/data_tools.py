@@ -16,6 +16,9 @@ from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl.ext.ase import M3GNetCalculator
 from ase.optimize import FIRE, LBFGS, LBFGSLineSearch
+from ase.constraints import UnitCellFilter
+from ase.neighborlist import neighbor_list
+
 from data.constants import atomic_numbers
 
 
@@ -206,6 +209,95 @@ def _load_m3gnet_calculator(*, compute_stress: bool = False) -> M3GNetCalculator
     return M3GNetCalculator(potential=potential, compute_stress=compute_stress)
 
 
+def _wrap01(x: np.ndarray) -> np.ndarray:
+    #
+    # Wrap fractional coordinates to [0, 1)
+    #
+    y = np.mod(x, 1.0)
+    y[y < 0.0] += 1.0
+    return y
+
+
+def _deterministic_nudge_frac(f: np.ndarray, eps: float = 1e-4) -> np.ndarray:
+    #
+    # Tiny, deterministic, non-random nudge to break exact degeneracies without RNG
+    #
+    n = f.shape[0]
+    if n == 0:
+        return f
+    bump = (np.arange(n, dtype=np.float64)[:, None] * np.array([1.0, 2.0, 3.0])) * eps
+    return _wrap01(f + bump)
+
+
+def _puff_if_clashing(atoms, *, min_sep_A: float = 0.7, scale: float = 1.01, relax_cell: bool = False) -> None:
+    pos = atoms.get_positions()
+    if len(pos) < 2:
+        return
+
+    # Fast: find any neighbors within min_sep_A (PBC-aware, C-backed)
+    # 'ijd' returns i, j, distances; if any exist, we have a clash
+    i, j, d = neighbor_list('ijd', atoms, cutoff=min_sep_A - 1e-9)
+    has_clash = (len(d) > 0)
+
+    if not has_clash:
+        return
+
+    if relax_cell:
+        atoms.set_cell(atoms.cell * scale, scale_atoms=True)
+    else:
+        # Fixed cell: tiny deterministic nudge in fractional coords
+        cell = atoms.cell
+        frac = np.linalg.solve(cell.T, pos.T).T
+        frac = _deterministic_nudge_frac(frac, eps=1e-3)
+        atoms.set_positions(np.dot(frac, cell))
+
+
+def _safe_to_primitive(
+    s: Structure,
+    *,
+    symprec_candidates: Iterable[float] = (5e-3, 2e-3, 1e-3, 5e-4),
+    angle_tolerance_candidates: Iterable[float] = (5.0, 2.0, -1.0),
+) -> Structure:
+    #
+    # Try spglib primitive with multiple tolerances; fall back safely if it fails
+    #
+    # Wrap and nudge before spglib to avoid coincident sites
+    f = _wrap01(s.frac_coords)
+    f = _deterministic_nudge_frac(f, eps=1e-10)
+    s = Structure(s.lattice, s.species, f, coords_are_cartesian=False)
+
+    for sp in symprec_candidates:
+        for ang in angle_tolerance_candidates:
+            try:
+                out = SpacegroupAnalyzer(s, symprec=sp, angle_tolerance=ang).get_primitive_standard_structure()
+                if out is not None and np.isfinite(out.lattice.volume) and out.lattice.volume > 1e-6:
+                    return out
+            except Exception:
+                pass
+
+    #
+    # Fallbacks that avoid heavy spglib calls
+    #
+    try:
+        out = s.get_primitive_structure()
+        if out is not None and out.lattice.volume > 1e-6:
+            return out
+    except Exception:
+        pass
+
+    try:
+        out = s.get_reduced_structure(reduction_algo="niggli")
+        if out is not None and out.lattice.volume > 1e-6:
+            return out
+    except Exception:
+        pass
+
+    #
+    # Ultimate fallback: return wrapped+nudged input
+    #
+    return s
+
+
 def refine_to_primitive_fast_strong(
     struct: Structure,
     *,
@@ -273,7 +365,7 @@ def refine_to_primitive_fast_strong(
     # 
     # 0) Canonicalize early
     # 
-    s0 = struct.get_primitive_structure()
+    s0 = _safe_to_primitive(struct)
 
     # 
     # 1) ASE atoms + positions-only calculator
