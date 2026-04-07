@@ -141,6 +141,7 @@ def decode_latent(
     z: Union[np.ndarray, torch.Tensor],
     integration: str = "cfg",
     min_dist: float = 0.5,
+    relax: bool = True
 ) -> Structure:
     dev = next(model.parameters()).device
 
@@ -158,6 +159,12 @@ def decode_latent(
     )
     if not structures:
         raise ValueError("No valid structure produced by decoder.")
+
+    structure = structures[0]
+
+    if relax:
+        structure = data_tools.refine_to_primitive_fast_strong(structure)
+
     return structures[0]
 
 
@@ -167,6 +174,7 @@ def reconstruct_structure(
     structure: Structure,
     integration: str = "cfg",
     min_dist: float = 0.5,
+    relax=True
 ):
     z = encode_structure(model, structure, separate=False)
     recon = decode_latent(
@@ -174,6 +182,7 @@ def reconstruct_structure(
         z=z,
         integration=integration,
         min_dist=min_dist,
+        relax=relax
     )
     return z, recon
 
