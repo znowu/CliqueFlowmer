@@ -10,7 +10,6 @@ numpy==2.4.2
 pandas==3.0.1
 Pillow==12.1.1
 protobuf==7.34.0
-py3Dmol==2.4.2
 py3Dmol==2.5.4
 pymatgen==2023.12.18
 spglib==2.7.0
