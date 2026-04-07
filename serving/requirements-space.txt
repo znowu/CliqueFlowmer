@@ -1,0 +1,15 @@
+absl_py==2.1.0
+ase==3.26.0
+matbench==0.6
+matplotlib==3.10.8
+ml_collections==0.1.1
+monty==2025.3.3
+numpy==2.4.2
+Pillow==12.1.1
+protobuf==7.34.0
+pymatgen==2023.12.18
+spglib==2.7.0
+torch==2.2.0
+tqdm==4.67.1
+gradio==5.34.2
+huggingface_hub==0.33.4
