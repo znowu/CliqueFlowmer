@@ -77,7 +77,7 @@ def build_model(
 
 def load_model_from_checkpoint(
     checkpoint_path: Union[str, Path],
-    model_kwargs: Optional[dict] = None,
+    model_kwargs: Optional[dict] = DEFAULT_MODEL_KWARGS,
     device: Optional[str] = None,
     strict: bool = True,
 ) -> CliqueFlowmer:
