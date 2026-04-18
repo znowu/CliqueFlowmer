@@ -1,3 +1,12 @@
--r ../requirements.txt
+absl-py==2.1.0
+ase==3.26.0
 gradio==5.34.2
 huggingface_hub==0.33.4
+matgl==1.2.1
+ml-collections==0.1.1
+monty==2025.3.3
+py3Dmol==2.5.4
+pymatgen==2023.12.18
+spglib==2.7.0
+tqdm==4.67.1
+wandb==0.15.12
