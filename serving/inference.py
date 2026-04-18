@@ -3,8 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Sequence, Union
 
+import pickle
 import numpy as np
 import torch
+
+
 from huggingface_hub import hf_hub_download
 from pymatgen.core import Structure
 
