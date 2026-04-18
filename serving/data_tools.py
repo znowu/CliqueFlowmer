@@ -458,3 +458,24 @@ def refine_to_primitive_fast_strong(
     # 
     relaxed = AseAtomsAdaptor.get_structure(atoms)
     return _safe_to_primitive(relaxed)
+
+
+def normal_lengths_from_mle(length_mle_vals, device, independent=True):
+
+    mu_a, sigma_a = length_mle_vals.get("a")
+    mu_b, sigma_b = length_mle_vals.get("b")
+    mu_c, sigma_c = length_mle_vals.get("c")
+
+    cov = length_mle_vals.get("cov", None)
+    mu = torch.tensor([mu_a, mu_b, mu_c], device=device).float()
+
+    if independent:
+        Sigma = torch.diag(
+            torch.tensor([sigma_a, sigma_b, sigma_c], device=device).float()
+        )**2 
+    else:
+        Sigma = torch.from_numpy(cov).float().to(device)
+        Sigma = (Sigma + Sigma.T) / 2
+
+    mvn = torch.distributions.MultivariateNormal(loc=mu, covariance_matrix=Sigma)
+    return mvn
