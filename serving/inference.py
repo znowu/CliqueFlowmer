@@ -105,7 +105,7 @@ def load_model_from_hf(
     with open(length_mle_path, 'rb') as f:
         length_mle = pickle.load(f)
     
-    model["initial_length_dist"] = data_tools.normal_lengths_from_mle(length_mle_dist)
+    model["initial_length_dist"] = data_tools.normal_lengths_from_mle(length_mle_dist, device)
 
 
     return load_model_from_checkpoint(
