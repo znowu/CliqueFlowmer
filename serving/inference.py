@@ -96,7 +96,7 @@ def load_model_from_checkpoint(
 def load_model_from_hf(
     repo_id: str,
     filename: str,
-    model_kwargs: Optional[dict] = None,
+    model_kwargs: Optional[dict] = DEFAULT_MODEL_KWARGS,
     device: Optional[str] = None,
     strict: bool = True,
     length_mle = "Length_MLE_Offset_True_MP20.pickle"
