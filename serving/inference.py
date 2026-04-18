@@ -96,8 +96,18 @@ def load_model_from_hf(
     model_kwargs: Optional[dict] = None,
     device: Optional[str] = None,
     strict: bool = True,
+    length_mle = "Length_MLE_Offset_True_MP20.pickle"
 ) -> CliqueFlowmer:
+
     ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename)
+    length_mle_path = hf_hub_download(repo_id=repo_id, filename=length_mle)
+
+    with open(length_mle_path, 'rb') as f:
+        length_mle = pickle.load(f)
+    
+    model["initial_length_dist"] = data_tools.normal_lengths_from_mle(length_mle_dist)
+
+
     return load_model_from_checkpoint(
         checkpoint_path=ckpt_path,
         model_kwargs=model_kwargs,
