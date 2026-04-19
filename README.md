@@ -10,6 +10,8 @@
 
 <p align="center">
   <a href="https://arxiv.org/pdf/2603.06082"><strong>Paper</strong></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://huggingface.co/iamkuba/CliqueFlowmer"><strong>Model Weights</strong></a>
 </p>
 
 ---
@@ -44,7 +46,6 @@ Instead of only generating materials, it:
 
 This repository contains the reference implementation for
 [*Offline Materials Optimization with CliqueFlowmer*](https://arxiv.org/pdf/2603.06082).
-We release the model weight on [HuggingFace](https://huggingface.co/iamkuba/CliqueFlowmer),
 
 ---
 
