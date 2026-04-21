@@ -235,7 +235,7 @@ def optimize_es(model, z, steps=1000, weight_decay=0.4):
 
     learner = ES(design, pred_fn, **kwargs)
 
-    for step in tqdm(range(1, steps+1)):
+    for step in tqdm.tqdm(range(1, steps+1)):
         train_info = learner.train_step()
     
     z_new = learner.design_fn()
