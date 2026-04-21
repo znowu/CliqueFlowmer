@@ -231,7 +231,7 @@ def optimize_es(model, z, steps=1000, weight_decay=0.4):
     }
 
     pred_fn = model.target_regressor
-    design = Design(z)
+    design = Design(z.view(-1, z.shape[-1]))
 
     learner = ES(design, pred_fn, **kwargs)
 
@@ -240,4 +240,4 @@ def optimize_es(model, z, steps=1000, weight_decay=0.4):
     
     z_new = learner.design_fn()
 
-    return z_new
+    return z_new, learner.value()
