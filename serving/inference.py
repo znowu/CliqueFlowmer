@@ -6,12 +6,15 @@ from typing import Optional, Sequence, Union
 import pickle
 import numpy as np
 import torch
-
+import tqdm
 
 from huggingface_hub import hf_hub_download
 from pymatgen.core import Structure
 
 from models import CliqueFlowmer
+from models.graphops import separate_latents
+from optimization.design import Design
+from optimization.learner import ES
 import serving.data_tools as data_tools
 
 
@@ -210,3 +213,31 @@ def text_to_latent(latent_text: str) -> np.ndarray:
     if not vals:
         raise ValueError("No latent values found.")
     return np.asarray(vals, dtype=np.float32)
+
+
+def optimize_es(model, z, steps=1000, weight_decay=0.4):
+
+    struct_fn = lambda x: separate_latents(x, model.index_matrix)
+
+    kwargs = {
+        "structure_fn": struct_fn,
+        "design_steps": steps,
+        "decay": weight_decay,
+        "lr": 3e-4,
+        "n_pert": 20,
+        "scale_pert": 0.05,
+        "antithetic": True,
+        "rank": True
+    }
+
+    pred_fn = model.target_regressor
+    design = Design(z)
+
+    learner = ES(design, pred_fn, **kwargs)
+
+    for step in tqdm(range(1, steps+1)):
+        train_info = learner.train_step()
+    
+    z_new = learner.design_fn()
+
+    return z_new
