@@ -240,6 +240,7 @@ def optimize_es(model, z, steps=1000, weight_decay=0.4):
     for step in tqdm.tqdm(range(1, steps+1)):
         train_info = learner.train_step()
     
+    print("\n")
     print(f"End with expected property value: {learner.value()}")
 
     z_new = learner.design_fn()
