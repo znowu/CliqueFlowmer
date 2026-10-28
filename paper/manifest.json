@@ -1,12 +1,12 @@
 {
   "manuscript": "Offline Materials Optimization with CliqueFlowmer",
   "format": "NeurIPS 2026 camera-ready (main,final)",
-  "source_package": "Approved camera-ready manuscript; files copied without content changes.",
+  "source_package": "Approved camera-ready content and figures with arXiv-compatible explicit figure paths, disabled unused EPS conversion, and the current unmodified official NeurIPS 2026 style.",
   "source_sha256": {
-    "final.tex": "d953b8714c0664f2dd8d280097f4aa58ec3b2b12d766f01b9131460c18651aa9",
+    "final.tex": "4492edddd5b8eafe08f88b6545cec8b2ff96f33c65dc4b4a3b4bed07a7e53fad",
     "final.bib": "316af1c98d818282914e033561b2f88df6962fa4231902d5b8a40073d3774a07",
     "math_commands.tex": "90473c4d0542070db244cea73ef962d6cddc5b2a746757e6a40ddf5fdfb90ba9",
-    "neurips_2026.sty": "0c1ad36961fcd9198dcc2558cf2793e1df39973bde8264fd701f5e7970672757",
+    "neurips_2026.sty": "c3fc2894e83d2517ca18b66741d6c595986d97957dc08ec08bb2125a7ec4555a",
     "figures/camera_ready_fonts/bandgap_hist_CliqueFlowmer_combined.pdf": "5db91800b7c83b876c6fb3d0cfdb312ab47f9ab9916276dd2b1cd4e770b6ed5d",
     "figures/camera_ready_fonts/clique_ablation.pdf": "9af27c1e88293ae4463765c3afdc9a9cc73c021c2cff951ce2380e2d202784d8",
     "figures/camera_ready_fonts/eform_hist_CliqueFlowmer_combined.pdf": "a7f3a6726b51efa8162ccfac1a4a43ef3471da37441823d5e3c3721b2ac8f589",
@@ -69,8 +69,24 @@
     "acknowledgments_start": 11
   },
   "demo_url": "https://cliqueflowmer.znowu.workers.dev",
-  "build_validation": {
-    "compiler": "pdfLaTeX and BibTeX",
+  "official_style": {
+    "url": "https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip",
+    "checked": "2026-10-28",
+    "sha256": "c3fc2894e83d2517ca18b66741d6c595986d97957dc08ec08bb2125a7ec4555a",
+    "change_from_original": "Official Education-track option added; main-track formatting is unchanged."
+  },
+  "submission_preparation": {
+    "checked": "2026-10-28",
+    "target_texlive_version": 2025,
+    "changes": [
+      "Made 35 figure paths explicit for arXiv source discovery without changing graphics settings.",
+      "Disabled unused EPS conversion; all figures are native PDF or PNG.",
+      "Updated the official style with its Education-track option; main-track formatting is unchanged."
+    ],
+    "arxiv_preflight_commit": "b093524ee453e8d10e82f3f5905551f8503d0263"
+  },
+  "original_build_validation": {
+    "compiler": "pdfLaTeX (TeX Live 2019) and BibTeX; original camera-ready validation",
     "latex_passes": 4,
     "main_pages": 10,
     "total_pages": 37,
@@ -83,5 +99,20 @@
     "overfull_boxes": 0,
     "underfull_boxes": 1,
     "underfull_boxes_note": "Pre-existing Appendix B.2 paragraph; unchanged from approved manuscript."
+  },
+  "submission_validation": {
+    "compiler": "pdfTeX 3.141592653-2.6-1.40.28 (TeX Live 2025)",
+    "main_pages": 10,
+    "total_pages": 37,
+    "acknowledgments_start_page": 11,
+    "all_fonts_embedded": true,
+    "type3_fonts": 0,
+    "latex_warnings": 0,
+    "overfull_boxes": 0,
+    "source_only_zip_rebuild_matches": true,
+    "arxiv_preflight_issues": 0,
+    "arxiv_preflight_commit": "b093524ee453e8d10e82f3f5905551f8503d0263",
+    "arxiv_server_checks_run": false,
+    "report": "dist/submission-report.json"
   }
 }

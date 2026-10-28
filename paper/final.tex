@@ -1,5 +1,7 @@
 % Camera-ready manuscript derived from anon.tex.
 
+% All figures are already PDF/PNG; no external conversion is needed.
+\newcommand{\DoNotLoadEpstopdf}{}
 \documentclass{article}
 \pdfminorversion=7
 \usepackage{microtype}
@@ -590,22 +592,13 @@ More information in Appendix \ref{app:opt}.
 \newcommand{\rowgap}{6pt}      % gap between the two rows (smaller than before, since captions are higher)
 
 \definecolor{plate}{RGB}{80,80,80}
-\newcommand{\cellimg}[1]{%
-  \includegraphics[
-    width=\linewidth,
-    height=\cellcardheight,
-    keepaspectratio,
-    trim=10 20 18 20,
-    clip
-  ]{#1}%
-}
-\newcommand{\cell}[3]{% #1 = header (can be empty), #2 = img path, #3 = formula caption
+\newcommand{\cell}[3]{% #1 = header (can be empty), #2 = image inclusion, #3 = formula caption
   \begin{minipage}[t]{0.18\textwidth}\centering
     \if\relax\detokenize{#1}\relax\else
       {\footnotesize\textbf{#1}}\par\vspace{0.4pt}%
       \vspace{\headgap}%
     \fi
-    \cellimg{#2}\par\vspace{\capgap}%
+    #2\par\vspace{\capgap}%
     {\footnotesize #3}%
   \end{minipage}%
 }
@@ -614,35 +607,35 @@ More information in Appendix \ref{app:opt}.
 {\color{plate}\rule{\textwidth}{\platerule}}\par
 \vspace{\platepad}
 \noindent\begin{tabular}{@{}ccccc@{}}
-\cell{$t=0.00$}{figures/new/Tot-0.png}{As$_3$Rh} &
-\cell{$t=0.25$}{figures/new/Tot-1.png}{As$_3$Rh} &
-\cell{$t=0.50$}{figures/new/Tot-2.png}{In$_4$Rh$_9$S$_4$} &
-\cell{$t=0.75$}{figures/new/Tot-3.png}{MgInBr$_3$} &
-\cell{$t=1.00$}{figures/new/Tot-4.png}{MgInBr$_3$} 
+\cell{$t=0.00$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Tot-0.png}}{As$_3$Rh} &
+\cell{$t=0.25$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Tot-1.png}}{As$_3$Rh} &
+\cell{$t=0.50$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Tot-2.png}}{In$_4$Rh$_9$S$_4$} &
+\cell{$t=0.75$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Tot-3.png}}{MgInBr$_3$} &
+\cell{$t=1.00$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Tot-4.png}}{MgInBr$_3$} 
 \\[\rowgap]
-\cell{}{figures/interpolations/seed2-0.png}{YbEuPd$_2$} &
-\cell{}{figures/interpolations/seed2-1.png}{YbEuPd$_2$} &
-\cell{}{figures/interpolations/seed2-2.png}{YbEuAlPd$_2$} &
-\cell{}{figures/interpolations/seed2-3.png}{Al$_2$B$_2$W} &
-\cell{}{figures/interpolations/seed2-4.png}{AlBW} 
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed2-0.png}}{YbEuPd$_2$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed2-1.png}}{YbEuPd$_2$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed2-2.png}}{YbEuAlPd$_2$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed2-3.png}}{Al$_2$B$_2$W} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed2-4.png}}{AlBW} 
 \\[\rowgap]
-\cell{}{figures/interpolations/seed3-0.png}{CeSi$_2$Ni} &
-\cell{}{figures/interpolations/seed3-1.png}{CeSi$_2$Ni} &
-\cell{}{figures/interpolations/seed3-2.png}{CeZr$_2$BIr$_3$} &
-\cell{}{figures/interpolations/seed3-3.png}{Zr$_2$BIr$_6$} &
-\cell{}{figures/interpolations/seed3-4.png}{Zr$_2$BIr$_6$} 
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed3-0.png}}{CeSi$_2$Ni} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed3-1.png}}{CeSi$_2$Ni} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed3-2.png}}{CeZr$_2$BIr$_3$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed3-3.png}}{Zr$_2$BIr$_6$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed3-4.png}}{Zr$_2$BIr$_6$} 
 \\[\rowgap]
-\cell{}{figures/interpolations/seed4-0.png}{EuZnPb} &
-\cell{}{figures/interpolations/seed4-1.png}{EuZnPb} &
-\cell{}{figures/interpolations/seed4-2.png}{U$_2$ZnCu$_2$Pb} &
-\cell{}{figures/interpolations/seed4-3.png}{MgU$_2$Cu$_3$O} &
-\cell{}{figures/interpolations/seed4-4.png}{Mg(CuO$_2$)$_2$} 
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed4-0.png}}{EuZnPb} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed4-1.png}}{EuZnPb} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed4-2.png}}{U$_2$ZnCu$_2$Pb} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed4-3.png}}{MgU$_2$Cu$_3$O} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed4-4.png}}{Mg(CuO$_2$)$_2$} 
 \\[\rowgap]
-\cell{}{figures/interpolations/seed7-0.png}{ZrSiPt} &
-\cell{}{figures/interpolations/seed7-1.png}{ZrSiPt} &
-\cell{}{figures/interpolations/seed7-2.png}{Zr$_4$Co$_4$Ge$_5$} &
-\cell{}{figures/interpolations/seed7-3.png}{Er$_4$Ge$_3$} &
-\cell{}{figures/interpolations/seed7-4.png}{LaEr$_4$Ge$_3$} 
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed7-0.png}}{ZrSiPt} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed7-1.png}}{ZrSiPt} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed7-2.png}}{Zr$_4$Co$_4$Ge$_5$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed7-3.png}}{Er$_4$Ge$_3$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/interpolations/seed7-4.png}}{LaEr$_4$Ge$_3$} 
 \\[\rowgap]
 \end{tabular}
 
@@ -694,22 +687,13 @@ Coordinates outside the selected clique remain fixed; shared coordinates also af
 \newcommand{\rowgap}{6pt}      % gap between the two rows (smaller than before, since captions are higher)
 
 \definecolor{plate}{RGB}{80,80,80}
-\newcommand{\cellimg}[1]{%
-  \includegraphics[
-    width=\linewidth,
-    height=\cellcardheight,
-    keepaspectratio,
-    trim=10 20 18 20,
-    clip
-  ]{#1}%
-}
-\newcommand{\cell}[3]{% #1 = header (can be empty), #2 = img path, #3 = formula caption
+\newcommand{\cell}[3]{% #1 = header (can be empty), #2 = image inclusion, #3 = formula caption
   \begin{minipage}[t]{0.18\textwidth}\centering
     \if\relax\detokenize{#1}\relax\else
       {\footnotesize\textbf{#1}}\par\vspace{0.4pt}%
       \vspace{\headgap}%
     \fi
-    \cellimg{#2}\par\vspace{\capgap}%
+    #2\par\vspace{\capgap}%
     {\footnotesize #3}%
   \end{minipage}%
 }
@@ -718,16 +702,16 @@ Coordinates outside the selected clique remain fixed; shared coordinates also af
 {\color{plate}\rule{\textwidth}{\platerule}}\par
 \vspace{\platepad}
 \noindent\begin{tabular}{@{}ccccc@{}}
-\cell{$t=0.00$}{figures/new/Clique-1-0.png}{As$_3$Rh} &
-\cell{$t=0.25$}{figures/new/Clique-1-1.png}{As$_3$Rh} &
-\cell{$t=0.50$}{figures/new/Clique-1-2.png}{As$_{11}$Rh$_4$} &
-\cell{$t=0.75$}{figures/new/Clique-1-3.png}{As$_4$Rh} &
-\cell{$t=1.00$}{figures/new/Clique-1-4.png}{As$_{11}$Rh$_4$} \\[\rowgap]
-\cell{}{figures/new/Clique-6-0.png}{As$_3$Rh} &
-\cell{}{figures/new/Clique-6-1.png}{As$_3$Rh} &
-\cell{}{figures/new/Clique-6-2.png}{As$_3$Rh} &
-\cell{}{figures/new/Clique-6-3.png}{VAs$_2$} &
-\cell{}{figures/new/Clique-6-4.png}{V$_2$As$_4$Rh} \\
+\cell{$t=0.00$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-1-0.png}}{As$_3$Rh} &
+\cell{$t=0.25$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-1-1.png}}{As$_3$Rh} &
+\cell{$t=0.50$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-1-2.png}}{As$_{11}$Rh$_4$} &
+\cell{$t=0.75$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-1-3.png}}{As$_4$Rh} &
+\cell{$t=1.00$}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-1-4.png}}{As$_{11}$Rh$_4$} \\[\rowgap]
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-6-0.png}}{As$_3$Rh} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-6-1.png}}{As$_3$Rh} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-6-2.png}}{As$_3$Rh} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-6-3.png}}{VAs$_2$} &
+\cell{}{\includegraphics[width=\linewidth,height=\cellcardheight,keepaspectratio,trim=10 20 18 20,clip]{figures/new/Clique-6-4.png}}{V$_2$As$_4$Rh} \\
 \end{tabular}
 
 \vspace{\platepad}\par

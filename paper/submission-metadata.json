@@ -1,0 +1,24 @@
+{
+  "action": "Replace the existing arXiv submission; do not create a new identifier.",
+  "arxiv_id": "2603.06082",
+  "title": "Offline Materials Optimization with CliqueFlowmer",
+  "authors": [
+    "Jakub Grudzien Kuba",
+    "Benjamin Kurt Miller",
+    "Sergey Levine",
+    "Pieter Abbeel"
+  ],
+  "abstract": "Recent advances in deep learning have inspired neural network-based approaches to computational materials discovery (CMD). A plethora of problems in this field involve finding materials that optimize a target property. Nevertheless, the increasingly popular generative modeling methods are ineffective at boldly exploring attractive regions of the materials space due to their maximum likelihood training. In this work, we offer an alternative CMD technique based on offline model-based optimization (MBO) that fuses direct optimization of a target material property into generation. To that end, we introduce a domain-specific model, CliqueFlowmer, that incorporates recent advances in clique-based MBO into transformer and flow generation. We validate this model's optimization abilities and show that materials it produces strongly outperform those from generative baselines. To support specialized materials discovery applications and broader interdisciplinary research, we release our code (https://github.com/znowu/CliqueFlowmer), model weights (https://huggingface.co/iamkuba/CliqueFlowmer), and an interactive demo (https://cliqueflowmer.znowu.workers.dev).",
+  "comments": "Accepted at NeurIPS 2026. Camera-ready version; 37 pages, including references, appendices, and checklist.",
+  "primary_category": "cs.AI",
+  "secondary_categories": [
+    "cs.CE"
+  ],
+  "license": "CC BY 4.0 (retain the existing arXiv paper license)",
+  "journal_reference": null,
+  "doi": null,
+  "compiler": "pdflatex",
+  "texlive_version": 2025,
+  "top_level_source": "final.tex",
+  "note": "Metadata draft for the replacement form. Proceedings volume/pages/DOI are not yet supplied. The repository MIT code license does not replace the paper license."
+}
