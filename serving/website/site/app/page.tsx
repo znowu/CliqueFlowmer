@@ -1,5 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { LatentComparison } from "../components/latent-comparison";
+import {
+  representationFile,
+  type RepresentationFormat,
+} from "../lib/representation-export";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -271,18 +276,6 @@ function save(name: string, data: BlobPart, mime = "application/json") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function npy(values: number[]) {
-  let h = `{'descr': '<f4', 'fortran_order': False, 'shape': (${values.length},), }`;
-  h += " ".repeat((16 - ((10 + h.length + 1) % 16)) % 16) + "\n";
-  const b = new ArrayBuffer(10 + h.length + values.length * 4),
-    u = new Uint8Array(b),
-    v = new DataView(b);
-  u.set([147, 78, 85, 77, 80, 89, 1, 0]);
-  v.setUint16(8, h.length, true);
-  u.set(new TextEncoder().encode(h), 10);
-  values.forEach((n, i) => v.setFloat32(10 + h.length + i * 4, n, true));
-  return b;
-}
 function History({ points }: { points: { step: number; score: number }[] }) {
   const ys = points.map((p) => p.score),
     hi = Math.max(...ys),
@@ -356,7 +349,8 @@ export default function Home() {
     [method, setMethod] = useState(false),
     [drag, setDrag] = useState(false),
     [notice, setNotice] = useState(""),
-    [latentView, setLatentView] = useState("optimized");
+    [representationFormat, setRepresentationFormat] =
+      useState<RepresentationFormat>("csv");
   const file = useRef<HTMLInputElement>(null),
     generation = useRef(0),
     jobRef = useRef<string | null>(null),
@@ -432,7 +426,7 @@ export default function Home() {
           setResult(s.result);
           finished.current = Date.now();
           setJob(null);
-          setDetail("overview");
+          setDetail("representation");
           return;
         }
         if (s.status === "failed" || s.status === "cancelled") {
@@ -534,27 +528,39 @@ export default function Home() {
   }
   async function upload(f: File | undefined) {
     if (!f) return;
+    invalidate();
+    const version = generation.current;
     setMode("upload");
+    setCif("");
+    setName(f.name);
+    setLoading(true);
     if (f.size > 100000) {
-      invalidate();
-      setCif("");
       setError("Please choose a CIF smaller than 100 KB.");
+      setLoading(false);
       return;
     }
     try {
+      const bytes = await f.arrayBuffer();
+      if (version !== generation.current) return;
       await prepare(
-        new TextDecoder("utf-8", { fatal: true }).decode(await f.arrayBuffer()),
+        new TextDecoder("utf-8", { fatal: true }).decode(bytes),
         f.name,
       );
     } catch {
-      invalidate();
-      setError("The CIF must be a UTF-8 text file.");
+      if (version === generation.current)
+        setError("The CIF must be a UTF-8 text file.");
+    } finally {
+      if (version === generation.current) setLoading(false);
     }
   }
-  const output = result?.output_summary,
-    latent =
-      (latentView === "optimized" ? result?.optimized_latent : null) ||
-      result?.latent;
+  function downloadRepresentation(
+    values: number[],
+    label: "original" | "optimized",
+  ) {
+    const exported = representationFile(values, label, representationFormat);
+    save(exported.name, exported.data, exported.mime);
+  }
+  const output = result?.output_summary;
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -635,34 +641,105 @@ export default function Home() {
                 <span className="step-number">01</span>
                 <h3>Start with a crystal</h3>
               </div>
-              <div
-                className="input-tabs"
-                role="tablist"
-                aria-label="Input source"
-              >
-                {[
-                  ["examples", "Examples"],
-                  ["upload", "Upload"],
-                  ["paste", "Paste CIF"],
-                ].map(([id, label]) => (
+              <div className="input-start">
+                <p className="start-hint">
+                  Try an example or bring your own crystal.
+                </p>
+                <input
+                  ref={file}
+                  className="visually-hidden"
+                  type="file"
+                  accept=".cif"
+                  tabIndex={-1}
+                  aria-label="Upload CIF file"
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0];
+                    e.target.value = "";
+                    upload(selected);
+                  }}
+                />
+                <button
+                  className={`upload-action ${drag ? "dragging" : ""}`}
+                  onClick={() => file.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDrag(true);
+                  }}
+                  onDragLeave={() => setDrag(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDrag(false);
+                    upload(e.dataTransfer.files[0]);
+                  }}
+                >
+                  <span className="upload-icon">
+                    <Upload size={22} />
+                  </span>
+                  <span>
+                    <strong>Upload CIF</strong>
+                    <small>Click to browse or drop a file here</small>
+                  </span>
+                  <ArrowUpRight size={16} />
+                </button>
+                {mode === "upload" && preview && (
+                  <div className="uploaded-file">
+                    <Check size={13} />
+                    <span>{name}</span>
+                  </div>
+                )}
+                <div className="upload-options">
+                  <span>.cif · up to 100 KB</span>
                   <button
-                    key={id}
-                    role="tab"
-                    aria-selected={mode === id}
-                    className={mode === id ? "selected" : ""}
-                    onClick={() => setMode(id)}
+                    aria-expanded={mode === "paste"}
+                    aria-controls="paste-cif-panel"
+                    onClick={() =>
+                      setMode(mode === "paste" ? "examples" : "paste")
+                    }
                   >
-                    {label}
+                    Paste CIF text <ChevronDown size={12} />
                   </button>
-                ))}
-              </div>
-              {mode === "examples" ? (
+                </div>
+                {mode === "paste" && (
+                  <div id="paste-cif-panel" className="paste-input">
+                    <textarea
+                      aria-label="CIF contents"
+                      spellCheck={false}
+                      value={cif}
+                      placeholder={"data_crystal\n_cell_length_a …"}
+                      onChange={(e) => {
+                        invalidate();
+                        setCif(e.target.value);
+                        setName("Pasted CIF");
+                        setLoading(false);
+                      }}
+                    />
+                    <button
+                      className="text-button"
+                      onClick={() => prepare(cif, "Pasted CIF")}
+                      disabled={!cif.trim() || loading}
+                    >
+                      Load structure <ArrowRight size={13} />
+                    </button>
+                  </div>
+                )}
+                <div className="example-heading">
+                  <h4>Example structures</h4>
+                  <span>READY TO TRY</span>
+                </div>
+                <p className="example-hint">
+                  Select a crystal, then click Optimize.
+                </p>
                 <div className="example-list">
                   {config?.examples.map((e: any, i: number) => (
                     <button
                       key={e.name}
                       className={`example ${name === e.name ? "chosen" : ""}`}
-                      onClick={() => prepare(e.cif, e.name)}
+                      aria-label={`Use ${["strontium titanate", "silicon", "copper"][i] || e.name} example`}
+                      aria-pressed={name === e.name}
+                      onClick={() => {
+                        setMode("examples");
+                        prepare(e.cif, e.name);
+                      }}
                     >
                       <span className="example-glyph">
                         <Atom size={20} />
@@ -686,60 +763,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-              ) : mode === "upload" ? (
-                <>
-                  <input
-                    ref={file}
-                    className="visually-hidden"
-                    type="file"
-                    accept=".cif"
-                    aria-label="Upload CIF file"
-                    onChange={(e) => upload(e.target.files?.[0])}
-                  />
-                  <button
-                    className={`drop-zone ${drag ? "dragging" : ""}`}
-                    onClick={() => file.current?.click()}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setDrag(true);
-                    }}
-                    onDragLeave={() => setDrag(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setDrag(false);
-                      upload(e.dataTransfer.files[0]);
-                    }}
-                  >
-                    <Upload size={24} />
-                    <strong>Drop your CIF here</strong>
-                    <span>or click to browse</span>
-                    <small>.cif · up to 100 KB</small>
-                  </button>
-                  {name && <div className="file-name">{name}</div>}
-                </>
-              ) : (
-                <div className="paste-input">
-                  <textarea
-                    aria-label="CIF contents"
-                    spellCheck={false}
-                    value={cif}
-                    placeholder={"data_crystal\n_cell_length_a …"}
-                    onChange={(e) => {
-                      invalidate();
-                      setCif(e.target.value);
-                      setName("Pasted CIF");
-                      setLoading(false);
-                    }}
-                  />
-                  <button
-                    className="text-button"
-                    onClick={() => prepare(cif, "Pasted CIF")}
-                    disabled={!cif.trim() || loading}
-                  >
-                    Load structure <ArrowRight size={13} />
-                  </button>
-                </div>
-              )}
+              </div>
               <p className="input-hint">
                 One ordered crystal. <br />
                 1–20 atoms in the uploaded cell.
@@ -926,6 +950,127 @@ export default function Home() {
                   {notice}
                 </div>
               )}
+              {result && (
+                <section
+                  className="downloads-panel"
+                  aria-label="Download results"
+                >
+                  <div className="downloads-heading">
+                    <h3>
+                      <Download size={16} />
+                      Download results
+                    </h3>
+                    <span>
+                      <Check size={12} />
+                      {result.operation === "encode"
+                        ? "Representation ready"
+                        : "Run complete"}
+                    </span>
+                  </div>
+                  <div
+                    className={`download-cards ${result.output_cif ? "" : "representation-only"}`}
+                  >
+                    {result.output_cif && (
+                      <div className="structure-download">
+                        <div>
+                          <strong>
+                            {result.operation === "optimize"
+                              ? "Optimized structure"
+                              : "Reconstructed structure"}
+                          </strong>
+                          <p>Unrelaxed crystal · CIF</p>
+                        </div>
+                        <button
+                          className="structure-download-button"
+                          onClick={() =>
+                            save(
+                              result.operation === "optimize"
+                                ? "cliqueflowmer-optimized.cif"
+                                : "cliqueflowmer-reconstructed.cif",
+                              result.output_cif!,
+                              "chemical/x-cif",
+                            )
+                          }
+                        >
+                          <Download size={16} />
+                          {result.operation === "optimize"
+                            ? "Download optimized CIF"
+                            : "Download reconstructed CIF"}
+                        </button>
+                      </div>
+                    )}
+                    <div className="representation-download">
+                      <div className="representation-download-header">
+                        <div>
+                          <strong>Latent representation</strong>
+                          <p>
+                            {result.latent.length} coordinates · Full precision
+                          </p>
+                        </div>
+                        <label className="format-choice">
+                          <span>Format</span>
+                          <select
+                            aria-label="Representation format"
+                            value={representationFormat}
+                            onChange={(e) =>
+                              setRepresentationFormat(
+                                e.target.value as RepresentationFormat,
+                              )
+                            }
+                          >
+                            <option value="csv">CSV (.csv)</option>
+                            <option value="npy">NumPy (.npy)</option>
+                            <option value="json">JSON (.json)</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div className="representation-download-buttons">
+                        <button
+                          onClick={() =>
+                            downloadRepresentation(result.latent, "original")
+                          }
+                        >
+                          <Download size={15} />
+                          Download original
+                        </button>
+                        {result.optimized_latent && (
+                          <button
+                            onClick={() =>
+                              downloadRepresentation(
+                                result.optimized_latent!,
+                                "optimized",
+                              )
+                            }
+                          >
+                            <Download size={15} />
+                            Download optimized
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="downloads-footer">
+                    <span>
+                      {representationFormat === "csv"
+                        ? "CSV: coordinate index and value, ready for a spreadsheet."
+                        : representationFormat === "npy"
+                          ? "NumPy: a float32 vector, ready for Python."
+                          : "JSON: labeled coordinates, ready for code."}
+                    </span>
+                    <button
+                      onClick={() =>
+                        save(
+                          "cliqueflowmer-result.json",
+                          JSON.stringify(result, null, 2),
+                        )
+                      }
+                    >
+                      <Download size={12} />
+                      Full run data (.json)
+                    </button>
+                  </div>
+                </section>
+              )}
               <div className="inspector">
                 <div className="inspector-nav">
                   <div>
@@ -942,20 +1087,6 @@ export default function Home() {
                       Representation <span>121D</span>
                     </button>
                   </div>
-                  {result && (
-                    <button
-                      className="download-link"
-                      onClick={() =>
-                        save(
-                          "cliqueflowmer-result.json",
-                          JSON.stringify(result, null, 2),
-                        )
-                      }
-                    >
-                      <Download size={13} />
-                      Run data
-                    </button>
-                  )}
                 </div>
                 {detail === "overview" ? (
                   result ? (
@@ -1012,68 +1143,12 @@ export default function Home() {
                       </div>
                     </div>
                   )
-                ) : latent ? (
-                  <div className="latent-panel">
-                    <div className="latent-toolbar">
-                      <span>
-                        {latentView === "optimized" && result?.optimized_latent
-                          ? "Optimized representation"
-                          : "Encoded representation"}
-                      </span>
-                      {result?.optimized_latent && (
-                        <div>
-                          {["encoded", "optimized"].map((v) => (
-                            <button
-                              key={v}
-                              className={latentView === v ? "active" : ""}
-                              onClick={() => setLatentView(v)}
-                            >
-                              {v === "encoded" ? "Original" : "Optimized"}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="latent-label">
-                      <strong>Eight connected cliques</strong>
-                      <span>
-                        16 coordinates each · 1 shared coordinate between
-                        neighbors
-                      </span>
-                    </div>
-                    <div className="clique-grid">
-                      {Array.from({ length: 8 }, (_, row) => (
-                        <div className="clique-row" key={row}>
-                          <span>C{row + 1}</span>
-                          {Array.from({ length: 16 }, (_, col) => {
-                            const idx = row * 15 + col,
-                              value = latent[idx],
-                              a = Math.min(
-                                0.92,
-                                0.15 +
-                                  (Math.abs(value) /
-                                    Math.max(...latent.map(Math.abs), 0.01)) *
-                                    0.77,
-                              );
-                            return (
-                              <div
-                                key={col}
-                                title={`Clique ${row + 1}, z[${idx}] = ${value.toPrecision(7)}`}
-                                style={{
-                                  background: `rgba(${value >= 0 ? "91,227,217" : "210,156,111"},${a})`,
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="result-note">
-                      Cyan: positive · Copper: negative. Shared coordinates are
-                      outlined. These learned features do not correspond to
-                      individual atoms or known physical properties.
-                    </p>
-                  </div>
+                ) : result ? (
+                  <LatentComparison
+                    key={finished.current}
+                    original={result.latent}
+                    optimized={result.optimized_latent}
+                  />
                 ) : (
                   <div className="inspector-empty">
                     <Braces size={30} />
@@ -1087,56 +1162,6 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              {result && (
-                <div className="result-downloads">
-                  <span>
-                    <Check size={13} />
-                    {result.operation === "encode"
-                      ? "Representation encoded"
-                      : "Exploration complete"}
-                  </span>
-                  {result.output_cif && (
-                    <button
-                      onClick={() =>
-                        save(
-                          "cliqueflowmer-candidate.cif",
-                          result.output_cif!,
-                          "chemical/x-cif",
-                        )
-                      }
-                    >
-                      <Download size={14} />
-                      Candidate CIF
-                    </button>
-                  )}
-                  <button
-                    onClick={() =>
-                      save(
-                        "cliqueflowmer-latent.npy",
-                        npy(result.latent),
-                        "application/octet-stream",
-                      )
-                    }
-                  >
-                    <Download size={14} />
-                    Encoded latent
-                  </button>
-                  {result.optimized_latent && (
-                    <button
-                      onClick={() =>
-                        save(
-                          "cliqueflowmer-optimized-latent.npy",
-                          npy(result.optimized_latent!),
-                          "application/octet-stream",
-                        )
-                      }
-                    >
-                      <Download size={14} />
-                      Optimized latent
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </section>

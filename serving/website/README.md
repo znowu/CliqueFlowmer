@@ -2,8 +2,14 @@
 
 A custom React website for a single uploaded CIF: encode its 121-dimensional
 representation, reconstruct a structure, or optimize the latent model objective.
-The interface includes two interactive 3D viewers, original/optimized clique
-heatmaps, a score trajectory, cancellation, and CIF, NumPy, and JSON downloads.
+The interface includes two interactive 3D viewers, stacked original/optimized
+representation rows, a score trajectory, cancellation, and prominent downloads.
+Upload CIF and Example structures are visible together. Representations can be
+downloaded independently as CSV, NumPy, or JSON; generated structures use CIF.
+
+Both representation rows preserve coordinate order and share one color scale.
+Hover, tap, or use arrow keys to compare the original, optimized, and difference
+values for a coordinate. On small screens, the rows scroll together horizontally.
 
 The dark navy, cyan, and copper design is responsive and supports keyboard
 navigation and reduced motion. The 3Dmol viewer is bundled locally with its
@@ -111,9 +117,12 @@ source/build/package/deploy workflow with the existing Site ID.
 - Jobs have a cooperative five-minute deadline. Cancellation reaches the ES
   and decoding loops. Results are session-private, memory-only, and expire
   after 30 minutes; at most 32 sessions retain results.
-- Download JSON records the checkpoint identity, seed, parameters, scores,
-  trajectory, input/output CIFs, and representations. NumPy downloads contain
-  float32 arrays and can be loaded with `allow_pickle=False`.
+- Full run JSON records the checkpoint identity, seed, parameters, scores,
+  trajectory, input/output CIFs, and representations. Representation-only JSON
+  includes the original/optimized label, dimension, and values. CSV has
+  zero-based `index,value` columns; both text formats retain full numeric
+  precision. NumPy downloads contain float32 arrays and can be loaded with
+  `allow_pickle=False`.
 
 ## Verification
 
@@ -125,8 +134,11 @@ and bounded retention. Install `httpx==0.28.1` for the test client and run:
 python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-The complete model/demo/API suite passes 56 tests. Browser checks use the real
-CPU checkpoint, including upload, encode, reconstruction, optimization, JSON /
-NumPy / CIF downloads, cancellation, invalid input, and mobile layout.
+The representation export test reads browser-generated files with Python's
+NumPy, CSV, and JSON readers to check numeric precision and coordinate order.
+It requires the frontend TypeScript dependency and Node.js and skips if these
+are unavailable. Browser checks use the real CPU checkpoint, including upload,
+encode, reconstruction, optimization, all six representation exports, CIF
+downloads, cancellation, invalid input, and mobile layout.
 
 Third-party hosting details: [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).

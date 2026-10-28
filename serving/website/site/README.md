@@ -2,6 +2,9 @@
 
 Custom crystal-design workspace: upload a CIF, inspect its latent representation,
 reconstruct it, optimize the learned objective, and download generated candidates.
+Upload and Example structures are visible together. The representation view
+compares original and optimized vectors as aligned rows on one color scale;
+each vector can be downloaded as CSV, NumPy, or JSON.
 
 ## Run
 
