@@ -63,11 +63,13 @@ This repository contains the reference implementation for
 
 ## Workflow
 
-For an interactive, CPU-only demonstration with the published model, use the
-[web demo](serving/web_demo/README.md). Upload one CIF, inspect its representation,
-reconstruct it, or optimize and download a candidate. It includes a reproducible
-inference environment and free Streamlit Community Cloud deployment instructions;
-no training dataset, GPU, or MatGL installation is needed.
+For an interactive CPU demonstration, use the
+[custom crystal workspace](serving/website/README.md): upload one CIF, inspect
+its representation, reconstruct it, or optimize and download a candidate. It
+includes interactive crystal viewers, clique visualizations, and score traces.
+The [Streamlit demo](serving/web_demo/README.md) is also available, with free
+Community Cloud deployment instructions. Neither demo requires a training
+dataset, GPU, or MatGL installation.
 
 The research workflow is:
 
