@@ -92,7 +92,7 @@ sub {
   padding: 0 48px;
 }
 .site-header {
-  height: 91px;
+  height: 116px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -100,15 +100,20 @@ sub {
 }
 .brand {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   align-items: center;
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: -0.8px;
+  flex-shrink: 0;
 }
-.brand-light {
+.brand h1 {
+  font-size: clamp(32px, 3.35vw, 47px);
   font-weight: 400;
-  color: #b9c8d4;
+  line-height: 1.1;
+  letter-spacing: -1.65px;
+  margin: 0;
+}
+.brand .mark {
+  width: 48px;
+  height: 54px;
 }
 .mark {
   width: 37px;
@@ -122,7 +127,7 @@ sub {
   letter-spacing: 1.8px;
   font-weight: 400;
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 9px;
 }
 .site-header nav {
   display: flex;
@@ -217,7 +222,7 @@ h1 em {
   min-width: 0;
 }
 .intro .intro-tagline {
-  margin-bottom: 10px;
+  margin: 18px 0 10px;
   color: var(--text);
   font-size: 18px;
   line-height: 1.45;
@@ -245,6 +250,16 @@ h1 em {
   border-color: var(--cyan);
   color: var(--cyan);
   background: #5ce3da0d;
+}
+.resource-logo {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.arxiv-logo {
+  width: 42px;
 }
 .mobile-break {
   display: none;
@@ -1271,9 +1286,6 @@ footer a {
   .site-header nav {
     margin-left: 0;
   }
-  .brand {
-    font-size: 19px;
-  }
   .work-grid {
     grid-template-columns: 1fr;
   }
@@ -1389,15 +1401,21 @@ footer a {
     padding: 0 16px;
   }
   .site-header {
-    height: 78px;
+    min-height: 100px;
+    height: auto;
+    padding: 20px 0;
     gap: 15px;
   }
   .brand {
-    font-size: 18px;
     gap: 9px;
   }
+  .brand h1 {
+    font-size: clamp(25px, 7.6vw, 35px);
+    letter-spacing: -1px;
+  }
   .brand .mark {
-    width: 29px;
+    width: 34px;
+    height: 40px;
   }
   .brand small {
     font-size: 6px;
@@ -1422,12 +1440,6 @@ footer a {
   }
   .intro-diagram {
     display: none;
-  }
-  .intro h1 {
-    font-size: 35px;
-    line-height: 1.2;
-    letter-spacing: -1px;
-    margin: 17px 0 13px;
   }
   .mobile-break {
     display: block;

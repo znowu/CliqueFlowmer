@@ -562,14 +562,14 @@ export default function Home() {
   }
   const output = result?.output_summary;
   return (
-    <div className="app-shell">
+    <div className="app-shell" id="top">
       <header className="site-header">
-        <a className="brand" href="#">
+        <a className="brand" href="#top" aria-label="CliqueFlowmer home">
           <Mark />
-          <span>
-            Clique<span className="brand-light">Flowmer</span>
+          <div>
+            <h1>Clique<em>Flowmer</em></h1>
             <small>COMPUTATIONAL ALCHEMY</small>
-          </span>
+          </div>
         </a>
         <nav>
           <a href="#workspace" className="nav-active">
@@ -581,6 +581,7 @@ export default function Home() {
             target="_blank"
             rel="noreferrer"
           >
+            <img className="resource-logo arxiv-logo" src="/brand/arxiv-white.svg" alt="arXiv" width="42" height="20" />
             Read the paper <ArrowUpRight size={13} />
           </a>
         </nav>
@@ -596,9 +597,6 @@ export default function Home() {
               <span />
               AI FOR MATERIALS OPTIMIZATION
             </div>
-            <h1>
-              Clique<em>Flowmer</em>
-            </h1>
             <p className="intro-tagline">
               Optimize Crystals with Clique and Flow Models
             </p>
@@ -612,6 +610,7 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
               >
+                <img className="resource-logo arxiv-logo" src="/brand/arxiv-white.svg" alt="arXiv" width="42" height="20" />
                 Read the paper <ArrowUpRight size={14} />
               </a>
               <a
@@ -619,6 +618,7 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
               >
+                <img className="resource-logo" src="/brand/github-white.svg" alt="" width="20" height="20" />
                 GitHub repository <ArrowUpRight size={14} />
               </a>
             </div>
@@ -1206,6 +1206,7 @@ export default function Home() {
           target="_blank"
           rel="noreferrer"
         >
+          <img className="resource-logo" src="/brand/github-white.svg" alt="" width="20" height="20" />
           GitHub <ArrowUpRight size={12} />
         </a>
         <a
@@ -1282,6 +1283,7 @@ export default function Home() {
               target="_blank"
               rel="noreferrer"
             >
+              <img className="resource-logo arxiv-logo" src="/brand/arxiv-white.svg" alt="arXiv" width="42" height="20" />
               Read the paper <ArrowUpRight size={15} />
             </a>
           </section>
