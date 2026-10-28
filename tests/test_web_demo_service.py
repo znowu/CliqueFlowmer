@@ -38,7 +38,7 @@ _atom_site_occupancy
 
 class ValidationTests(unittest.TestCase):
     def test_bundled_examples_parse_and_preserve_uploaded_cell(self):
-        for name, expected_sites in [("Silicon · 2 sites", 2), ("Copper · 4 sites", 4),
+        for name, expected_sites in [("Silicon · 2 sites", 2), ("Cs₂AgBiBr₆ · 10 sites", 10),
                                      ("Strontium titanate · 5 sites", 5)]:
             with self.subTest(example=name):
                 structure = service.validate_cif(service.EXAMPLES[name])

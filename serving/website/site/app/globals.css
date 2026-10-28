@@ -439,6 +439,13 @@ h1 em {
   color: var(--muted);
   margin-top: 5px;
 }
+.objective-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+  margin: -8px 0 17px;
+  grid-column: 1 / -1;
+}
 .budget-control {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -347,7 +347,7 @@ def main() -> None:
 
         with action_column:
             st.markdown("**Explore this crystal**")
-            st.caption("Minimize the learned latent objective.")
+            st.caption("Target: minimize formation energy per atom (eV/atom). Displayed scores use the model’s internal scale.")
             with st.expander("Run settings"):
                 budget_label = st.selectbox("Optimization budget", list(BUDGETS), key="cf_budget")
                 seed = int(st.number_input("Random seed", min_value=0, max_value=2**31 - 1, value=42, step=1, key="cf_seed"))

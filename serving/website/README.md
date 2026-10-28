@@ -6,6 +6,8 @@ The interface includes two interactive 3D viewers, stacked original/optimized
 representation rows, a score trajectory, cancellation, and prominent downloads.
 Upload CIF and Example structures are visible together. Representations can be
 downloaded independently as CSV, NumPy, or JSON; generated structures use CIF.
+The three example structures are strontium titanate, silicon, and idealized
+Cs₂AgBiBr₆ (10 sites, four elements).
 
 Both representation rows preserve coordinate order and share one color scale.
 Hover, tap, or use arrow keys to compare the original, optimized, and difference
@@ -111,7 +113,8 @@ source/build/package/deploy workflow with the existing Site ID.
 - One CPU job at a time; concurrent submissions receive a clear busy message.
 - Quick/Extended optimization uses 100/500 ES steps, followed by 1,000 flow
   steps, with at most one retry for invalid generated geometry.
-- The checkpoint lacks target scaling metadata. Displayed scores are **raw
+- The optimization target is **formation energy per atom**, whose physical
+  units are **eV/atom**. The checkpoint lacks target scaling metadata. Displayed scores are **raw
   latent predictor outputs**, not calibrated eV/atom or evaluated candidate
   energies. Generated structures are unrelaxed and may change composition.
 - Jobs have a cooperative five-minute deadline. Cancellation reaches the ES

@@ -219,6 +219,16 @@ def create_app(*, worker=None, static_dir=None, public_origin=None,
     registry = JobRegistry(worker, limit=registry_limit, ttl=result_ttl, clock=clock)
     sessions = Sessions()
     validation_slot = threading.BoundedSemaphore(1)
+    # Derive labels and summaries from the same CIFs served to the browser.
+    # Compute once at startup rather than parsing structures on every request.
+    example_catalog = []
+    for name, cif in EXAMPLES.items():
+        structure = validate_cif(cif)
+        example_catalog.append({
+            "name": name, "label": name.partition(" · ")[0], "cif": cif,
+            "summary": structure_summary(structure),
+            "element_count": len(structure.composition.elements),
+        })
 
     async def validate(cif):
         # Bound expensive CIF parsing across previews and job submissions too.
@@ -234,7 +244,7 @@ def create_app(*, worker=None, static_dir=None, public_origin=None,
     async def config(request):
         registry.prune()
         return JSONResponse({
-            "examples": [{"name": name, "cif": cif} for name, cif in EXAMPLES.items()],
+            "examples": example_catalog,
             "limits": {"max_cif_bytes": MAX_CIF_BYTES, "max_sites": MAX_SITES,
                        "max_job_seconds": MAX_JOB_SECONDS, "result_ttl_seconds": result_ttl},
             "budgets": BUDGETS, "model": MANIFEST,

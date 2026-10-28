@@ -7,8 +7,10 @@
   "prior_sha256": "c59aaf64d58e5244ca158e1902c64493b2d92b039b8652bfe1f330b97ef210c5",
   "property_name": "Latent objective",
   "unit": "model score",
+  "target_property": "Formation energy per atom",
+  "target_unit": "eV/atom",
   "direction": "minimize",
-  "objective_note": "Formation-energy checkpoint. The published artifact does not include target scaling metadata, so raw latent predictor outputs are reported as model scores, not calibrated eV/atom or independently evaluated candidate energies.",
+  "objective_note": "The optimization target is formation energy per atom (eV/atom). The published artifact does not include target scaling metadata, so raw latent predictor outputs are reported as model scores, not calibrated eV/atom or independently evaluated candidate energies.",
   "training_domain": "Alexandria pretraining, MP20 fine-tuning",
   "max_sites": 20,
   "latent_dim": 121

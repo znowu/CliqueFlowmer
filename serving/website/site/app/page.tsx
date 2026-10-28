@@ -730,11 +730,11 @@ export default function Home() {
                   Select a crystal, then click Optimize.
                 </p>
                 <div className="example-list">
-                  {config?.examples.map((e: any, i: number) => (
+                  {config?.examples.map((e: any) => (
                     <button
                       key={e.name}
                       className={`example ${name === e.name ? "chosen" : ""}`}
-                      aria-label={`Use ${["strontium titanate", "silicon", "copper"][i] || e.name} example`}
+                      aria-label={`Use ${e.label || e.name.split(" · ")[0]} example`}
                       aria-pressed={name === e.name}
                       onClick={() => {
                         setMode("examples");
@@ -745,14 +745,16 @@ export default function Home() {
                         <Atom size={20} />
                       </span>
                       <span>
-                        <strong>
-                          {["Strontium titanate", "Silicon", "Copper"][i] ||
-                            e.name}
-                        </strong>
+                        <strong>{e.label || e.name.split(" · ")[0]}</strong>
                         <small>
-                          {["SrTiO₃ · 5 sites", "Si · 2 sites", "Cu · 4 sites"][
-                            i
-                          ] || "Example crystal"}
+                          {e.summary ? (
+                            <>
+                              <Formula text={e.summary.formula} /> ·{" "}
+                              {e.summary.n_sites} sites
+                            </>
+                          ) : (
+                            e.name.split(" · ").slice(1).join(" · ")
+                          )}
                         </small>
                       </span>
                       {name === e.name ? (
@@ -778,10 +780,13 @@ export default function Home() {
                   <Sparkles size={16} />
                 </span>
                 <div>
-                  <strong>Lower the model objective</strong>
-                  <small>Formation-energy checkpoint</small>
+                  <strong>Formation energy per atom</strong>
+                  <small>Minimize · physical units: eV/atom</small>
                 </div>
               </div>
+              <p className="objective-note">
+                Displayed scores use the model’s internal scale.
+              </p>
               <div className="budget-control" aria-label="Optimization budget">
                 {[
                   ["quick", "Quick", "100 steps"],
@@ -1118,9 +1123,9 @@ export default function Home() {
                         <History points={result.history} />
                       )}
                       <p className="result-note">
-                        Raw latent model scores · Lower is the optimization
-                        target. Generated structures are unrelaxed; composition
-                        may change.
+                        Target: lower formation energy per atom. Values shown
+                        are uncalibrated model scores, not eV/atom. Generated
+                        structures are unrelaxed; composition may change.
                       </p>
                     </>
                   ) : (
@@ -1229,8 +1234,8 @@ export default function Home() {
                 <span>02</span>
                 <h3>Explore</h3>
                 <p>
-                  Evolution strategies optimize the learned objective in latent
-                  space, using 100 or 500 steps.
+                  Evolution strategies minimize a learned predictor of formation
+                  energy per atom in latent space, using 100 or 500 steps.
                 </p>
               </div>
               <div>
@@ -1243,10 +1248,11 @@ export default function Home() {
               </div>
             </div>
             <p className="method-note">
-              The published formation-energy checkpoint lacks target scaling
-              metadata. Scores are raw latent model outputs, not calibrated
-              eV/atom or independently evaluated candidate energies. Structures
-              are unrelaxed and are not DFT-validated.
+              The physical target is formation energy per atom (eV/atom). The
+              published checkpoint lacks target scaling metadata. Scores are raw
+              latent model outputs, not calibrated eV/atom or independently
+              evaluated candidate energies. Structures are unrelaxed and are not
+              DFT-validated.
             </p>
             <p className="method-note">
               Uploads stay in temporary server memory. Results expire after 30
