@@ -6,7 +6,7 @@ The interface includes two interactive 3D viewers, stacked original/optimized
 representation rows, a score trajectory, cancellation, and prominent downloads.
 Upload CIF and Example structures are visible together. Representations can be
 downloaded independently as CSV, NumPy, or JSON; generated structures use CIF.
-The three example structures are strontium titanate, silicon, and idealized
+The three example structures progress from silicon to strontium titanate to idealized
 Cs₂AgBiBr₆ (10 sites, four elements).
 
 Both representation rows preserve coordinate order and share one color scale.
@@ -19,23 +19,29 @@ license; uploaded structures are never sent to a third-party viewer.
 
 ## Architecture and cost
 
-`site/` is the React/Vinext website, hosted on Sites. Its server-side `/api/*`
-proxy forwards requests to `api.py`, a single-process Starlette CPU service.
+The public website is **https://cliqueflowmer.znowu.workers.dev**.
+`site/` contains the shared React interface. The public Cloudflare build serves
+static assets and a small server-side `/api/*` Worker proxy, which forwards
+requests to `api.py`, a single-process Starlette CPU service on **grace**.
+The original React/Vinext Sites preview remains a separate build target.
 The proxy key stays on the server. The API reuses `serving/web_demo/service.py`
 and the same revision- and SHA-pinned public checkpoint. No GPU, MatGL, DGL,
 training dataset, or paid inference API is needed.
 
-The initial hosted preview runs the CPU service on **grace**, reached through a
-free Cloudflare Quick Tunnel. This is a demonstration deployment: grace, the
-API process, and the tunnel must remain running. Quick Tunnel URLs change on
+The CPU service is reached through a free Cloudflare Quick Tunnel. This is a
+demonstration deployment: Grace, the API process, and the tunnel must remain
+running. Quick Tunnel URLs change on
 restart and have no uptime guarantee. They are not a permanent hosting service.
-The website's URL remains stable; its backend origin must be updated and the
-website redeployed when the tunnel URL changes. A stable public deployment can
-use a named tunnel or another CPU host with a stable HTTPS origin.
+The website's URL remains stable; update the Worker's
+`CLIQUEFLOWMER_API_ORIGIN` secret when the tunnel URL changes. A stable backend
+connection can use a named tunnel or another CPU host with a stable HTTPS origin.
 
-Site ID: `appgprj_6ae1967d9c0081919c8ea55b2d2fc68f`
+Cloudflare build, preview, and deployment instructions:
+[`site/cloudflare/README.md`](site/cloudflare/README.md).
 
-Website: <https://cliqueflowmer-lab.loyalcow26.chatgpt.site>
+Private Sites preview ID: `appgprj_6ae1967d9c0081919c8ea55b2d2fc68f`
+
+Private preview: <https://cliqueflowmer-lab.loyalcow26.chatgpt.site>
 
 The Site starts as an owner-private preview. Publishing a version does not
 change its audience. Public access is a separate Sites sharing setting.

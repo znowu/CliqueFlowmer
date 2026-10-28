@@ -1,0 +1,22 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // Approved public address: https://cliqueflowmer.znowu.workers.dev
+  "name": "cliqueflowmer",
+  "account_id": "3f8b7ebf22adccf085de4ead31a0a019",
+  "main": "worker.ts",
+  "compatibility_date": "2026-05-15",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../dist/cloudflare/public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "none"
+  },
+  "define": {
+    "import.meta.env.DEV": "false"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

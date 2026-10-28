@@ -591,19 +591,37 @@ export default function Home() {
       </header>
       <main>
         <section className="intro">
-          <div>
+          <div className="intro-copy">
             <div className="eyebrow">
               <span />
-              MATTER, REIMAGINED
+              AI FOR MATERIALS OPTIMIZATION
             </div>
             <h1>
-              A new direction
-              <br className="mobile-break" /> for <em>discovery.</em>
+              Clique<em>Flowmer</em>
             </h1>
-            <p>
-              Explore a crystal’s latent space. Transform its representation.
-              <br className="desktop-break" /> Bring a new candidate into view.
+            <p className="intro-tagline">
+              Optimize Crystals with Clique and Flow Models
             </p>
+            <p>
+              A new direction for materials discovery.
+              <br className="desktop-break" /> Explore representations, reconstruct crystals, and optimize candidates.
+            </p>
+            <div className="intro-resources" aria-label="Research resources">
+              <a
+                href="https://arxiv.org/abs/2603.06082"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Read the paper <ArrowUpRight size={14} />
+              </a>
+              <a
+                href="https://github.com/znowu/CliqueFlowmer"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub repository <ArrowUpRight size={14} />
+              </a>
+            </div>
           </div>
           <div className="intro-diagram" aria-hidden="true">
             <div className="diagram-ring" />

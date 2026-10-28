@@ -8,7 +8,7 @@ from starlette.testclient import TestClient
 from serving.web_demo.service import EXAMPLES, Job
 from serving.website.api import BODY_LIMIT, COOKIE_NAME, create_app
 
-CIF = next(iter(EXAMPLES.values()))
+CIF = EXAMPLES["Strontium titanate · 5 sites"]
 ORIGIN = "https://demo.example"
 
 

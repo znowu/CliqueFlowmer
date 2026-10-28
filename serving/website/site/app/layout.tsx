@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CliqueFlowmer — Computational Alchemy",
-  description: "Explore crystal representations, reconstruct structures, and optimize new material candidates with CliqueFlowmer.",
+  title: "CliqueFlowmer — Optimize Crystals with AI",
+  description:
+    "Optimize crystals with clique and flow models. Explore material representations, reconstruct structures, and discover new candidates with CliqueFlowmer.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

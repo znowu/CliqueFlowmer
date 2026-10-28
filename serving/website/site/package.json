@@ -9,6 +9,10 @@
     "install:ci": "node scripts/install-ci.mjs",
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
+    "build:cloudflare": "vite build --config cloudflare/vite.config.ts",
+    "check:cloudflare": "wrangler deploy --cwd cloudflare --config wrangler.jsonc --dry-run --outdir ../dist/cloudflare/worker",
+    "preview:cloudflare": "wrangler dev --config cloudflare/wrangler.jsonc --local --ip 127.0.0.1 --port 5173 --inspector-port 0",
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --config cloudflare/wrangler.jsonc",
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"

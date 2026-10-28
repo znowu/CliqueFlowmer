@@ -35,8 +35,8 @@ BUDGETS = {
     "standard": {"es_steps": 500, "flow_steps": 1000},
 }
 EXAMPLES = {
-    "Strontium titanate · 5 sites": (HERE / "examples/strontium_titanate.cif").read_text(),
     "Silicon · 2 sites": (HERE / "examples/silicon.cif").read_text(),
+    "Strontium titanate · 5 sites": (HERE / "examples/strontium_titanate.cif").read_text(),
     "Cs₂AgBiBr₆ · 10 sites": (HERE / "examples/cesium_silver_bismuth_bromide.cif").read_text(),
 }
 log = logging.getLogger(__name__)

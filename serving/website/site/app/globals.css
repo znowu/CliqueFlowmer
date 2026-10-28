@@ -213,11 +213,45 @@ h1 em {
   font-size: 13px;
   color: var(--muted);
 }
+.intro-copy {
+  min-width: 0;
+}
+.intro .intro-tagline {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.45;
+  letter-spacing: -0.25px;
+}
+.intro-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 19px;
+}
+.intro-resources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #29494e;
+  border-radius: 5px;
+  background: #5ce3da06;
+  color: #b2d9d7;
+  font-size: 11px;
+}
+.intro-resources a:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: #5ce3da0d;
+}
 .mobile-break {
   display: none;
 }
 .intro-diagram {
   position: relative;
+  flex-shrink: 0;
   height: 172px;
   width: 220px;
   display: flex;
@@ -1405,6 +1439,19 @@ footer a {
     font-size: 11px;
     max-width: 300px;
     line-height: 1.8;
+  }
+  .intro .intro-tagline {
+    max-width: 340px;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .intro-resources {
+    gap: 8px;
+    margin-top: 17px;
+  }
+  .intro-resources a {
+    min-height: 44px;
+    gap: 8px;
   }
   .eyebrow {
     font-size: 8px;
