@@ -90,6 +90,33 @@ sub {
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 48px;
+  position: relative;
+  z-index: 1;
+}
+.liquid-surface {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 80% 15%, #0b58654d, transparent 50%),
+    radial-gradient(ellipse at 10% 80%, #12366055, transparent 50%),
+    var(--bg);
+}
+.liquid-canvas,
+.liquid-fallback,
+.liquid-vignette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.liquid-vignette {
+  background:
+    linear-gradient(90deg, #070d1425, transparent 45%, #070d1418),
+    linear-gradient(#070d1400, #070d1411 65%, #070d1444);
 }
 .site-header {
   height: 116px;
@@ -146,6 +173,27 @@ sub {
 }
 .site-header nav .nav-active {
   color: var(--text);
+}
+.site-header nav .motion-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 9px 12px;
+  border: 1px solid #6edbd744;
+  border-radius: 999px;
+  background: #0c202a99;
+  color: #b7e8e4;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.site-header nav .motion-toggle:hover {
+  border-color: var(--cyan);
+}
+.site-header nav .motion-toggle[aria-pressed="false"] {
+  color: var(--muted);
+  border-color: var(--line);
 }
 .connection {
   display: flex;
@@ -279,27 +327,32 @@ h1 em {
   height: 105px;
   opacity: 0.65;
   transform: rotate(-12deg);
+  filter: drop-shadow(0 0 18px #4ce9db33);
 }
 .diagram-ring {
   position: absolute;
   inset: 7px 30px;
-  border: 1px solid #28414a;
-  border-radius: 50%;
+  border: 1px solid #59cdd744;
+  border-radius: 47% 53% 57% 43% / 45% 43% 57% 55%;
+  transform: rotate(-17deg);
+  background: radial-gradient(ellipse at 35% 20%, #5be9de0b, transparent 70%);
+  box-shadow: inset 0 0 30px #0ae0e50a;
 }
 .diagram-ring:after {
   content: "";
   position: absolute;
   inset: 14px;
-  border: 1px dashed #24363e;
+  border: 1px solid #84aaf425;
   border-radius: 50%;
+  transform: rotate(-28deg);
 }
 .diagram-dot {
   position: absolute;
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--copper);
-  box-shadow: 0 0 8px #d29c6f44;
+  background: #91bdf2;
+  box-shadow: 0 0 8px #5ce3da44;
 }
 .diagram-dot.d1 {
   top: 37px;
@@ -322,11 +375,11 @@ h1 em {
   letter-spacing: 1px;
 }
 .workspace {
-  border: 1px solid var(--line);
+  border: 1px solid #74cbd535;
   border-radius: 9px;
-  background: var(--panel);
+  background: #09141de6;
   overflow: hidden;
-  box-shadow: 0 12px 60px #00000014;
+  box-shadow: 0 18px 80px #01060b44;
 }
 .workspace-bar {
   height: 57px;
@@ -641,6 +694,15 @@ h1 em {
   overflow: hidden;
   min-width: 0;
 }
+.liquid-panel {
+  background:
+    radial-gradient(ellipse 230px 170px at var(--surface-x, -500px) var(--surface-y, -500px), #83edd719, transparent 75%),
+    linear-gradient(145deg, #10232bd9, #0a1521f2);
+  border-color: #8ec8dd35;
+}
+[data-liquid-motion="false"] .liquid-panel {
+  background: linear-gradient(145deg, #10232bd9, #0a1521f2);
+}
 .crystal-heading {
   display: flex;
   align-items: center;
@@ -852,6 +914,14 @@ h1 em {
   border-radius: 5px;
   margin-top: 16px;
   overflow: hidden;
+  background: #0a131c;
+}
+.inspector.liquid-panel {
+  background:
+    radial-gradient(ellipse 230px 170px at var(--surface-x, -500px) var(--surface-y, -500px), #83edd710, transparent 75%),
+    #0a131cf2;
+}
+[data-liquid-motion="false"] .inspector.liquid-panel {
   background: #0a131c;
 }
 .inspector-nav {
@@ -1281,10 +1351,10 @@ footer a {
     display: none;
   }
   .connection {
-    margin-left: auto;
+    display: none;
   }
   .site-header nav {
-    margin-left: 0;
+    margin-left: auto;
   }
   .work-grid {
     grid-template-columns: 1fr;
@@ -1430,6 +1500,17 @@ footer a {
   }
   .site-header nav button {
     font-size: 11px;
+  }
+  .site-header nav button:not(.motion-toggle) {
+    display: none;
+  }
+  .site-header nav .motion-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+  }
+  .motion-label {
+    display: none;
   }
   .connection {
     display: none;

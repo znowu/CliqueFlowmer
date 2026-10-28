@@ -17,6 +17,14 @@ The dark navy, cyan, and copper design is responsive and supports keyboard
 navigation and reduced motion. The 3Dmol viewer is bundled locally with its
 license; uploaded structures are never sent to a third-party viewer.
 
+The liquid surface adds blue-green currents, cursor ripples, and panel highlights.
+Its decorative canvases sit beneath the interface and cannot intercept pointer
+input. The original 3Dmol viewers retain drag rotation, scroll zoom, reset, and
+automatic rotation for both input and generated structures. Background motion
+pauses while dragging a viewer and when the tab is hidden. The Motion toggle
+remembers its setting locally; reduced-motion preferences are respected by
+default. Rendering is bounded and falls back to Canvas2D if WebGL is unavailable.
+
 ## Architecture and cost
 
 The public website is **https://cliqueflowmer.znowu.workers.dev**.

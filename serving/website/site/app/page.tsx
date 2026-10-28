@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { LatentComparison } from "../components/latent-comparison";
+import { LiquidSurface, useLiquidMotion } from "../components/liquid-surface";
 import {
   representationFile,
   type RepresentationFormat,
@@ -21,6 +22,7 @@ import {
   Braces,
   Sparkles,
   Atom,
+  Waves,
 } from "lucide-react";
 declare global {
   interface Window {
@@ -330,6 +332,7 @@ function History({ points }: { points: { step: number; score: number }[] }) {
 }
 
 export default function Home() {
+  const { enabled: liquidMotion, toggle: toggleLiquidMotion } = useLiquidMotion();
   const [config, setConfig] = useState<any>(null),
     [online, setOnline] = useState(false),
     [mode, setMode] = useState("examples"),
@@ -561,8 +564,21 @@ export default function Home() {
     save(exported.name, exported.data, exported.mime);
   }
   const output = result?.output_summary;
+  function highlightPanel(event: PointerEvent<HTMLDivElement>) {
+    if (
+      !liquidMotion ||
+      event.pointerType !== "mouse" ||
+      (event.target as Element).closest(".crystal-stage")
+    ) return;
+    const panel = event.currentTarget;
+    const rect = panel.getBoundingClientRect();
+    panel.style.setProperty("--surface-x", `${event.clientX - rect.left}px`);
+    panel.style.setProperty("--surface-y", `${event.clientY - rect.top}px`);
+  }
   return (
-    <div className="app-shell" id="top">
+    <>
+      <LiquidSurface enabled={liquidMotion} />
+      <div className="app-shell" id="top" data-liquid-motion={liquidMotion}>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="CliqueFlowmer home">
           <Mark />
@@ -576,14 +592,17 @@ export default function Home() {
             Workspace
           </a>
           <button onClick={() => setMethod(true)}>The method</button>
-          <a
-            href="https://arxiv.org/abs/2603.06082"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            className="motion-toggle"
+            onClick={toggleLiquidMotion}
+            aria-label="Liquid motion"
+            aria-pressed={liquidMotion}
+            title={liquidMotion ? "Pause liquid motion" : "Enable liquid motion"}
           >
-            <img className="resource-logo arxiv-logo" src="/brand/arxiv-white.svg" alt="arXiv" width="42" height="20" />
-            Read the paper <ArrowUpRight size={13} />
-          </a>
+            <Waves size={15} aria-hidden="true" />
+            <span className="motion-label">Motion {liquidMotion ? "on" : "off"}</span>
+          </button>
         </nav>
         <div className={`connection ${online ? "on" : ""}`}>
           <span />
@@ -876,7 +895,7 @@ export default function Home() {
             </aside>
             <div className="visualization-panel">
               <div className="viewers">
-                <div className="crystal-card">
+                <div className="crystal-card liquid-panel" onPointerMove={highlightPanel}>
                   <div className="crystal-heading">
                     <span>INPUT STRUCTURE</span>
                     <span className="tag">ORIGINAL</span>
@@ -900,7 +919,8 @@ export default function Home() {
                   <Crystal data={preview?.viewer || null} />
                 </div>
                 <div
-                  className={`crystal-card candidate ${output ? "has-result" : ""}`}
+                  className={`crystal-card liquid-panel candidate ${output ? "has-result" : ""}`}
+                  onPointerMove={highlightPanel}
                 >
                   <div className="crystal-heading">
                     <span>
@@ -1094,7 +1114,7 @@ export default function Home() {
                   </div>
                 </section>
               )}
-              <div className="inspector">
+              <div className="inspector liquid-panel" onPointerMove={highlightPanel}>
                 <div className="inspector-nav">
                   <div>
                     <button
@@ -1289,6 +1309,7 @@ export default function Home() {
           </section>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
