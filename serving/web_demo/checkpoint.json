@@ -1,0 +1,15 @@
+{
+  "repo_id": "iamkuba/CliqueFlowmer",
+  "revision": "5e79b8a460c1da0af6e1ac76526f383fe208a516",
+  "filename": "CliqueFlowmer-Alexandria+MP20-Eform.pth",
+  "sha256": "6567294b0cf4fad130ee9b49008e691f955e21282df6d5ccc0db2b1a97e77fdc",
+  "prior_filename": "Length_MLE_Offset_True_MP20.pickle",
+  "prior_sha256": "c59aaf64d58e5244ca158e1902c64493b2d92b039b8652bfe1f330b97ef210c5",
+  "property_name": "Latent objective",
+  "unit": "model score",
+  "direction": "minimize",
+  "objective_note": "Formation-energy checkpoint. The published artifact does not include target scaling metadata, so raw latent predictor outputs are reported as model scores, not calibrated eV/atom or independently evaluated candidate energies.",
+  "training_domain": "Alexandria pretraining, MP20 fine-tuning",
+  "max_sites": 20,
+  "latent_dim": 121
+}

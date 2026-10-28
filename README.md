@@ -63,6 +63,14 @@ This repository contains the reference implementation for
 
 ## Workflow
 
+For an interactive, CPU-only demonstration with the published model, use the
+[web demo](serving/web_demo/README.md). Upload one CIF, inspect its representation,
+reconstruct it, or optimize and download a candidate. It includes a reproducible
+inference environment and free Streamlit Community Cloud deployment instructions;
+no training dataset, GPU, or MatGL installation is needed.
+
+The research workflow is:
+
 1. preprocess a dataset of materials and target properties
 2. train CliqueFlowmer
 3. optimize latent representations

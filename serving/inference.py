@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Sequence, Union
+from typing import Optional, Union
 
 import pickle
 import numpy as np
 import torch
-import tqdm
 
 from huggingface_hub import hf_hub_download
 from pymatgen.core import Structure
 
 from models import CliqueFlowmer
 from models.graphops import separate_latents
+from models.tools import report_progress
 from optimization.design import Design
 from optimization.learner import ES
 import serving.data_tools as data_tools
@@ -80,14 +80,14 @@ def build_model(
 
 def load_model_from_checkpoint(
     checkpoint_path: Union[str, Path],
-    model_kwargs: Optional[dict] = DEFAULT_MODEL_KWARGS,
+    model_kwargs: Optional[dict] = None,
     device: Optional[str] = None,
     strict: bool = True,
 ) -> CliqueFlowmer:
     dev = _device(device)
     model = build_model(model_kwargs=model_kwargs, device=str(dev))
 
-    raw = torch.load(checkpoint_path, map_location="cpu")
+    raw = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
     state_dict = _strip_module_prefix(_resolve_state_dict(raw))
     model.load_state_dict(state_dict, strict=strict)
 
@@ -99,24 +99,26 @@ def load_model_from_checkpoint(
 def load_model_from_hf(
     repo_id: str,
     filename: str,
-    model_kwargs: Optional[dict] = DEFAULT_MODEL_KWARGS,
+    model_kwargs: Optional[dict] = None,
     device: Optional[str] = None,
     strict: bool = True,
-    length_mle = "Length_MLE_Offset_True_MP20.pickle"
+    length_mle="Length_MLE_Offset_True_MP20.pickle",
+    revision: Optional[str] = None,
 ) -> CliqueFlowmer:
 
-    ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename)
-    length_mle_path = hf_hub_download(repo_id=repo_id, filename=length_mle)
+    ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename, revision=revision)
+    length_mle_path = hf_hub_download(repo_id=repo_id, filename=length_mle, revision=revision)
 
     with open(length_mle_path, 'rb') as f:
         length_mle = pickle.load(f)
     
-    model_kwargs["initial_length_dist"] = data_tools.normal_lengths_from_mle(length_mle, device)
+    kwargs = dict(model_kwargs or {})
+    kwargs["initial_length_dist"] = data_tools.normal_lengths_from_mle(length_mle, _device(device))
 
 
     return load_model_from_checkpoint(
         checkpoint_path=ckpt_path,
-        model_kwargs=model_kwargs,
+        model_kwargs=kwargs,
         device=device,
         strict=strict,
     )
@@ -151,13 +153,26 @@ def encode_structure(
     return z[0]
 
 
+@torch.no_grad()
 def decode_latent(
     model: CliqueFlowmer,
     z: Union[np.ndarray, torch.Tensor],
     integration: str = "cfg",
     min_dist: float = 0.5,
-    relax: bool = True
+    relax: bool = True,
+    *,
+    n_steps: Optional[int] = None,
+    beam_width: int = 10,
+    min_atoms: int = 3,
+    max_atoms: int = 100,
+    progress_callback=None,
+    cancel_check=None,
 ) -> Structure:
+    """Decode one latent; callbacks receive (completed_work, total_work).
+
+    ``cancel_check`` takes no arguments and raises to abort. Relaxation remains
+    optional and is separate from the bounded neural decoding progress.
+    """
     dev = next(model.parameters()).device
 
     if isinstance(z, np.ndarray):
@@ -167,8 +182,18 @@ def decode_latent(
 
     if z.ndim == 1:
         z = z.unsqueeze(0)
+    if z.ndim != 2 or z.shape != (1, model.latent_dim) or not torch.isfinite(z).all():
+        raise ValueError(f"Expected one finite {model.latent_dim}-dimensional latent vector.")
+    if not np.isfinite(min_dist) or min_dist < 0:
+        raise ValueError("min_dist must be finite and nonnegative.")
 
-    abc, angles, atomic, pos, mask = model.decode(z, integration=integration)
+    abc, angles, atomic, pos, mask = model.decode(
+        z, integration=integration, n_steps=n_steps, beam_width=beam_width,
+        min_atoms=min_atoms, max_atoms=max_atoms,
+        progress_callback=progress_callback, cancel_check=cancel_check,
+    )
+    if cancel_check is not None:
+        cancel_check()
     structures = data_tools.tensors_to_structure(
         abc, angles, atomic, pos, mask, min_dist=min_dist
     )
@@ -179,6 +204,8 @@ def decode_latent(
 
     if relax:
         structure = data_tools.refine_to_primitive_fast_strong(structure)
+    if cancel_check is not None:
+        cancel_check()
 
     return structure
 
@@ -188,7 +215,8 @@ def reconstruct_structure(
     structure: Structure,
     integration: str = "cfg",
     min_dist: float = 0.5,
-    relax=True
+    relax=True,
+    **decode_kwargs,
 ):
     z = encode_structure(model, structure, separate=False)
     recon = decode_latent(
@@ -196,7 +224,8 @@ def reconstruct_structure(
         z=z,
         integration=integration,
         min_dist=min_dist,
-        relax=relax
+        relax=relax,
+        **decode_kwargs,
     )
     return z, recon
 
@@ -215,9 +244,28 @@ def text_to_latent(latent_text: str) -> np.ndarray:
     return np.asarray(vals, dtype=np.float32)
 
 
-def optimize_es(model, z, steps=1000, weight_decay=0.4):
+@torch.no_grad()
+def optimize_es(model, z, steps=1000, weight_decay=0.4, *,
+                progress_callback=None, cancel_check=None, return_history=False):
+    """Minimize the checkpoint's latent objective without modifying ``z``.
 
-    struct_fn = lambda x: separate_latents(x, model.index_matrix)
+    Returns ``(latent, score)`` by default. With ``return_history=True``, returns
+    ``(latent, score, history)``; history contains ``step`` and ``objective`` at
+    step zero, every ten steps and the final step. Scores are predictor outputs,
+    whose physical meaning and any normalization depend on the checkpoint.
+    Callbacks receive ``(step, steps)``; ``cancel_check()`` raises to cancel.
+    """
+    if not isinstance(steps, int) or steps < 0:
+        raise ValueError("steps must be a nonnegative integer.")
+    if not np.isfinite(weight_decay) or weight_decay < 0:
+        raise ValueError("weight_decay must be finite and nonnegative.")
+    dev = next(model.parameters()).device
+    z = z.detach().to(device=dev, dtype=torch.float32).clone()
+    if z.ndim not in (1, 2) or z.numel() == 0 or z.shape[-1] != model.latent_dim or not torch.isfinite(z).all():
+        raise ValueError(f"Expected finite {model.latent_dim}-dimensional latents.")
+    index_matrix = model.index_matrix.to(dev)
+
+    struct_fn = lambda x: separate_latents(x, index_matrix)
 
     kwargs = {
         "structure_fn": struct_fn,
@@ -235,14 +283,25 @@ def optimize_es(model, z, steps=1000, weight_decay=0.4):
 
     learner = ES(design, pred_fn, **kwargs)
 
-    print(f"Start with property value: {learner.value()}")
+    history = []
 
-    for step in tqdm.tqdm(range(1, steps+1)):
-        train_info = learner.train_step()
-    
-    print("\n")
-    print(f"End with expected property value: {learner.value()}")
+    def record(step):
+        value = learner.value().detach()
+        if not torch.isfinite(value).all():
+            raise ValueError("The latent predictor produced a nonfinite objective.")
+        if return_history:
+            history.append({"step": step, "objective": float(value.cpu())})
+        return value
 
-    z_new = learner.design_fn()
+    report_progress(0, steps, progress_callback, cancel_check)
+    score = record(0)
+    for step in range(1, steps + 1):
+        learner.train_step()
+        if step % 10 == 0 or step == steps:
+            score = record(step)
+        report_progress(step, steps, progress_callback, cancel_check)
 
-    return z_new, learner.value()
+    z_new = learner.design_fn().detach().clone()
+    if return_history:
+        return z_new, score, history
+    return z_new, score

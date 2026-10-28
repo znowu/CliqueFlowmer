@@ -1,6 +1,3 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
 #
 # Make an atom type to number map
 #
@@ -37,7 +34,22 @@ atomic_null_emb = 0.
 # Make an atom type to color map
 #
 num_elements = len(atomic_numbers)
-colormap = plt.cm.get_cmap('hsv', num_elements)  # Use 'hsv' for a wide range of colors
-colors = [colormap(i) for i in np.linspace(0, 1, num_elements)]
-atomic_colors = {element: f'#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}' 
-                  for element, (r, g, b, _) in zip(list(atomic_numbers.keys()), colors)}
+
+
+def __getattr__(name):
+    # Visualization colors are unnecessary for model inference. Build the same
+    # palette as before when a plotting caller first asks for it.
+    if name not in {"colormap", "colors", "atomic_colors"}:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    colormap = plt.cm.get_cmap('hsv', num_elements)
+    colors = [colormap(i) for i in np.linspace(0, 1, num_elements)]
+    atomic_colors = {
+        element: f'#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}'
+        for element, (r, g, b, _) in zip(list(atomic_numbers.keys()), colors)
+    }
+    globals().update(colormap=colormap, colors=colors, atomic_colors=atomic_colors)
+    return globals()[name]

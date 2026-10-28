@@ -9,7 +9,7 @@ import architectures.backbones as backbones
 
 import models.graphops as graphops
 
-import data.tools as data_tools
+import data.tensor_tools as data_tools
 import models.tools as tools 
 import os 
 
@@ -210,7 +210,7 @@ class Flow(nn.Module):
         return noise 
 
     @torch.no_grad()
-    def sample(self, z, atomic, mask, n_steps=1000):
+    def sample(self, z, atomic, mask, n_steps=1000, *, progress_callback=None, cancel_check=None):
         #
         # Initialize a molecule
         #
@@ -222,6 +222,7 @@ class Flow(nn.Module):
         t = torch.zeros(atomic.shape[0]).to(atomic.device)
 
         for step in range(n_steps):
+            tools.report_progress(step, n_steps, progress_callback, cancel_check)
             #
             # Predict the velocity
             #
@@ -239,12 +240,14 @@ class Flow(nn.Module):
             #
             t = t + 1 / n_steps
         
-        torch.cuda.empty_cache()
+        tools.report_progress(n_steps, n_steps, progress_callback, cancel_check)
+        if z.is_cuda:
+            torch.cuda.empty_cache()
 
         return (torch.exp(abc) - EPS).clamp_min(0), angles.clamp(0, math.pi - EPS), pos.clamp(0, 1)
     
     @torch.no_grad()
-    def sample_cfg(self, z, modulate_fn, atomic, mask, n_steps=1000, omega=2):
+    def sample_cfg(self, z, modulate_fn, atomic, mask, n_steps=1000, omega=2, *, progress_callback=None, cancel_check=None):
         #
         # Initialize a molecule
         #
@@ -256,6 +259,7 @@ class Flow(nn.Module):
         t = torch.zeros(atomic.shape[0]).to(atomic.device)
 
         for step in range(n_steps):
+            tools.report_progress(step, n_steps, progress_callback, cancel_check)
             #
             # Predict the velocity
             #
@@ -287,12 +291,14 @@ class Flow(nn.Module):
             #
             t = t + 1 / n_steps
         
-        torch.cuda.empty_cache()
+        tools.report_progress(n_steps, n_steps, progress_callback, cancel_check)
+        if z.is_cuda:
+            torch.cuda.empty_cache()
 
         return (torch.exp(abc) - EPS).clamp_min(0), angles.clamp(0, math.pi - EPS), pos.clamp(0, 1)
 
     @torch.no_grad()
-    def sample_dopri5(self, z, atomic, mask, max_nfe = 1000, t0 = 0.0, t1 = 1.0, rtol = 1e-4, atol = 1e-4, h_init = None):
+    def sample_dopri5(self, z, atomic, mask, max_nfe = 1000, t0 = 0.0, t1 = 1.0, rtol = 1e-4, atol = 1e-4, h_init = None, *, progress_callback=None, cancel_check=None):
         """
         Adaptive Dormand–Prince 5(4) (RK45) sampler for your flow matching model.
 
@@ -404,6 +410,7 @@ class Flow(nn.Module):
         nfe = 0
 
         while t < t1 and nfe < max_nfe:
+            tools.report_progress(nfe, max_nfe, progress_callback, cancel_check, every=1)
             # Do not step past t1
             if t + h > t1:
                 h = t1 - t
@@ -552,6 +559,7 @@ class Flow(nn.Module):
                 factor = max(min_factor, min(1.0, factor))
                 h = max(min_h, h * factor)
 
+        tools.report_progress(max_nfe, max_nfe, progress_callback, cancel_check)
         # Final projection to physical domain
         cell_lengths = (torch.exp(abc) - EPS).clamp_min(0.0)
         angles_out = angles.clamp(math.pi / 3, 2 * math.pi / 3 - EPS)
@@ -560,7 +568,7 @@ class Flow(nn.Module):
         return cell_lengths, angles_out, pos_out
 
     @torch.no_grad()
-    def sample_rk4(self, z, atomic, mask, n_steps: int = 250):
+    def sample_rk4(self, z, atomic, mask, n_steps: int = 250, *, progress_callback=None, cancel_check=None):
 
         device = atomic.device
         B = atomic.shape[0]
@@ -582,7 +590,8 @@ class Flow(nn.Module):
             )
             return v_abc, v_angles, v_pos
 
-        for _ in range(n_steps):
+        for step in range(n_steps):
+            tools.report_progress(step, n_steps, progress_callback, cancel_check)
             # k1
             k1_abc, k1_ang, k1_pos = eval_f(abc, angles, pos, t)
 
@@ -618,6 +627,7 @@ class Flow(nn.Module):
             # Advance time (shared across batch)
             t = t + h
 
+        tools.report_progress(n_steps, n_steps, progress_callback, cancel_check)
         # Final projection to physical domain
         cell_lengths = (torch.exp(abc) - EPS).clamp_min(0.0)
         angles_out = angles.clamp(math.pi / 3 + EPS, 2 * math.pi / 3- EPS)

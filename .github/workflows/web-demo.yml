@@ -1,0 +1,32 @@
+name: CPU web demo
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            serving/web_demo/requirements.txt
+            serving/web_demo/constraints.txt
+      - name: Install isolated CPU inference dependencies
+        run: python -m pip install -r serving/web_demo/requirements.txt pytest==9.2.0
+      - run: python -m pip check
+      - name: Core, serving, and UI regression tests
+        run: python -m pytest tests -q
+      - name: Real published-checkpoint smoke test
+        if: github.event_name == 'workflow_dispatch'
+        run: python -m serving.web_demo.benchmark

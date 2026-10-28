@@ -3,6 +3,15 @@ import torch.nn.functional as F
 from data.constants import atomic_numbers, atomic_symbols
 
 
+def report_progress(step, total, progress_callback=None, cancel_check=None, every=10):
+    """Report bounded work and cooperatively cancel without touching RNG state."""
+    if step == 0 or step >= total or step % every == 0:
+        if cancel_check is not None:
+            cancel_check()
+        if progress_callback is not None:
+            progress_callback(min(step, total), total)
+
+
 def get_device(model):
     return list(model.parameters())[0].device
 
@@ -230,12 +239,22 @@ def batched_beam_search(
     max_atoms=100,
     min_atoms=3,
     temperature=1.0,
+    *,
+    progress_callback=None,
+    cancel_check=None,
+    early_stop=True,
 ):
     """
     Batched beam search for generating atomic structures with CliqueFlowmer model.
     z: conditioning variable of shape [batch_size, ...]
     Returns: list of 1D LongTensors (token sequences) for each batch element, or None.
     """
+    if not isinstance(beam_width, int) or beam_width < 1:
+        raise ValueError("beam_width must be a positive integer.")
+    if not isinstance(min_atoms, int) or not isinstance(max_atoms, int) or not 1 <= min_atoms <= max_atoms:
+        raise ValueError("Atom limits must satisfy 1 <= min_atoms <= max_atoms.")
+    if not 0 < temperature < float("inf"):
+        raise ValueError("temperature must be finite and positive.")
     device = z.device
     batch_size = z.size(0)
 
@@ -253,7 +272,10 @@ def batched_beam_search(
     best_completed = [None for _ in range(batch_size)]
     best_scores = [float('-inf') for _ in range(batch_size)]
 
-    for step in range(max_atoms):
+    # One final iteration allows EOS after exactly max_atoms real atoms.
+    total_steps = max_atoms + 1
+    for step in range(total_steps):
+        report_progress(step, total_steps, progress_callback, cancel_check, every=1)
         any_valid = False
 
         next_active_tokens = [[] for _ in range(batch_size)]
@@ -265,6 +287,12 @@ def batched_beam_search(
 
             # No active beams for this sample
             if not beams_tokens_i:
+                continue
+
+            # Every future log-probability increment is <= 0. Once no active
+            # prefix can beat the completed sequence, further expansion cannot
+            # change the answer (including ties, which never replace it).
+            if early_stop and best_completed[i] is not None and max(beams_scores_i) <= best_scores[i]:
                 continue
 
             num_beams = len(beams_tokens_i)
@@ -300,13 +328,14 @@ def batched_beam_search(
 
             # Option 2: continue sequence (if not too long)
             if cur_len - 1 < max_atoms:
-                # Exclude end token from expansion (we handled it explicitly)
-                log_probs_trunc = log_probs[:, :-1]                 # [num_beams, vocab_size-1]
+                # BOS is never a real atom; EOS was handled explicitly above.
+                log_probs_trunc = log_probs[:, 1:-1]
 
                 k = min(beam_width, log_probs_trunc.size(-1))
                 topk_log_probs, topk_tokens = torch.topk(
                     log_probs_trunc, k=k, dim=-1
                 )  # both [num_beams, k]
+                topk_tokens = topk_tokens + 1
 
                 cand_tokens = []
                 cand_scores = []
@@ -370,7 +399,9 @@ def batched_beam_search(
 
         results.append(seq.long())  # 1D LongTensor
 
-    torch.cuda.empty_cache()
+    report_progress(total_steps, total_steps, progress_callback, cancel_check, every=1)
+    if z.is_cuda:
+        torch.cuda.empty_cache()
 
     return results
 

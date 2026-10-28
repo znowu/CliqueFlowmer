@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn 
 import architectures.ops as ops
-from data.tools import causal_mask
+from data.tensor_tools import causal_mask
 
 
 class TransformerBlock(nn.Module):

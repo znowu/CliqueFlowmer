@@ -4,3 +4,8 @@ matenv
 api_key.py
 /mp20/
 /mp20-bandgap/
+.venv-demo/
+.venv-demo-clean/
+.cache-demo/
+.pytest_cache/
+serving/web_demo/benchmark-results.local.json

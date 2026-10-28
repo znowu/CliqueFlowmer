@@ -9,7 +9,7 @@ import architectures.blocks as blocks
 import architectures.backbones as backbones
 import distributions.gaussian as gauss
 
-import data.tools as data_tools
+import data.tensor_tools as data_tools
 import data.constants as constants
 import models.tools as tools 
 import models.graphops as graphops
@@ -272,11 +272,31 @@ class CliqueFlowmer(nn.Module):
         return z 
     
     @torch.no_grad()
-    def decode(self, z, integration="cfg", batch_limit=1000):
+    def decode(self, z, integration="cfg", batch_limit=1000, *, n_steps=None,
+               beam_width=10, min_atoms=3, max_atoms=100,
+               progress_callback=None, cancel_check=None):
+
+        if integration not in {"cfg", "euler", "dopri5", "rk4"}:
+            raise ValueError(f"Unknown geometry integration method: {integration}")
+        if n_steps is None:
+            n_steps = 10000 if integration == "rk4" else 1000
+        if not isinstance(n_steps, int) or n_steps < 1:
+            raise ValueError("n_steps must be a positive integer.")
+        if not isinstance(batch_limit, int) or batch_limit < 1:
+            raise ValueError("batch_limit must be a positive integer.")
+        if z.ndim != 2 or z.shape[0] == 0 or z.shape[1] != self.latent_dim:
+            raise ValueError(f"Expected a nonempty batch of {self.latent_dim}-dimensional latents.")
 
         batch_size = z.shape[0]
         n_batches = math.ceil(batch_size / batch_limit)
         device = z.device
+        beam_steps = max_atoms + 1
+        total_steps = beam_steps + n_batches * n_steps
+        tools.report_progress(0, total_steps, progress_callback, cancel_check)
+
+        def beam_progress(step, _total):
+            if progress_callback is not None:
+                progress_callback(step, total_steps)
 
         #
         # Modulate the latents 
@@ -303,7 +323,11 @@ class CliqueFlowmer(nn.Module):
         #
         # Find the atomic symbols with beam search
         #
-        atomic = tools.batched_beam_search(self, z_dec, beam_width=10)
+        atomic = tools.batched_beam_search(
+            self, z_dec, beam_width=beam_width, min_atoms=min_atoms,
+            max_atoms=max_atoms, progress_callback=beam_progress,
+            cancel_check=cancel_check,
+        )
         atomic_pad = data_tools.pad_sequences_fast(atomic)
         atomic, mask = data_tools.move_to_device(atomic_pad, device)
         atomic = atomic.long()
@@ -325,18 +349,24 @@ class CliqueFlowmer(nn.Module):
             z_flow_i = z_flow[start : end]
             mask_i = mask[start : end]
             atomic_emb_i = atomic_emb[start : end]
+
+            def flow_progress(step, _total):
+                if progress_callback is not None:
+                    progress_callback(beam_steps + i * n_steps + step, total_steps)
+
+            flow_hooks = {"progress_callback": flow_progress, "cancel_check": cancel_check}
         
             #
             # Generate the geometry with the flow
             #
             if integration == "euler":
-                abc_i, angles_i, pos_i = self.geo_flow.sample(z_flow_i, atomic_emb_i, mask_i, n_steps=1000)
+                abc_i, angles_i, pos_i = self.geo_flow.sample(z_flow_i, atomic_emb_i, mask_i, n_steps=n_steps, **flow_hooks)
             elif integration == "cfg":
-                abc_i, angles_i, pos_i = self.geo_flow.sample_cfg(z_flow_i, self.modulate_latent, atomic_emb_i, mask_i, n_steps=1000, omega=2)
+                abc_i, angles_i, pos_i = self.geo_flow.sample_cfg(z_flow_i, self.modulate_latent, atomic_emb_i, mask_i, n_steps=n_steps, omega=2, **flow_hooks)
             elif integration == "dopri5":
-                abc_i, angles_i, pos_i = self.geo_flow.sample_dopri5(z_flow_i, atomic_emb_i, mask_i, max_nfe=1000)
+                abc_i, angles_i, pos_i = self.geo_flow.sample_dopri5(z_flow_i, atomic_emb_i, mask_i, max_nfe=n_steps, **flow_hooks)
             elif integration == "rk4":
-                abc_i, angles_i, pos_i = self.geo_flow.sample_rk4(z_flow_i, atomic_emb_i, mask_i, n_steps=10000)
+                abc_i, angles_i, pos_i = self.geo_flow.sample_rk4(z_flow_i, atomic_emb_i, mask_i, n_steps=n_steps, **flow_hooks)
 
             abc.append(abc_i)
             angles.append(angles_i)
