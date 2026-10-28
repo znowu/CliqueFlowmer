@@ -102,13 +102,14 @@ python -m serving.web_demo.benchmark
 python -m serving.web_demo.benchmark --operation reconstruct --output /tmp/reconstruction.json
 ```
 
-The benchmark uses real published weights and the three included idealized
-crystals, recording per-case success/failure, elapsed time, process peak RSS,
+The benchmark uses real published weights and the three selected example
+crystals (Si, SrTiO3, and Cs2AgBiBr6), recording per-case success/failure, elapsed time, process peak RSS,
 objective values, retry count, package versions and checkpoint provenance.
 Example CIFs are constructed from conventional textbook geometries; they are
 demonstration inputs, not new experimental or DFT results.
 
-Local validation on 2026-10-27 used the pinned CPU-only stack, two PyTorch threads,
+The historical local benchmark below used Si, SrTiO3, and Cu before Cs2AgBiBr6
+replaced Cu in the UI. Local validation on 2026-10-27 used the pinned CPU-only stack, two PyTorch threads,
 seed 42, 100 ES steps and 1,000 CFG steps:
 
 | Input | Optimization + decoding | Decode attempts | Process peak RSS |

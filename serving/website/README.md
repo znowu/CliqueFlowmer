@@ -31,7 +31,6 @@ The public website is **https://cliqueflowmer.znowu.workers.dev**.
 `site/` contains the shared React interface. The public Cloudflare build serves
 static assets and a small server-side `/api/*` Worker proxy, which forwards
 requests to `api.py`, a single-process Starlette CPU service on **grace**.
-The original React/Vinext Sites preview remains a separate build target.
 The proxy key stays on the server. The API reuses `serving/web_demo/service.py`
 and the same revision- and SHA-pinned public checkpoint. No GPU, MatGL, DGL,
 training dataset, or paid inference API is needed.
@@ -46,13 +45,6 @@ connection can use a named tunnel or another CPU host with a stable HTTPS origin
 
 Cloudflare build, preview, and deployment instructions:
 [`site/cloudflare/README.md`](site/cloudflare/README.md).
-
-Private Sites preview ID: `appgprj_6ae1967d9c0081919c8ea55b2d2fc68f`
-
-Private preview: <https://cliqueflowmer-lab.loyalcow26.chatgpt.site>
-
-The Site starts as an owner-private preview. Publishing a version does not
-change its audience. Public access is a separate Sites sharing setting.
 
 ## CPU service
 
@@ -96,7 +88,8 @@ npm ci
 npm run dev
 ```
 
-Put local settings in ignored `.dev.vars` and production settings in Sites:
+Put local settings in ignored `site/cloudflare/.dev.vars` and production settings
+in Cloudflare Worker secrets:
 
 | Variable | Meaning |
 | --- | --- |
@@ -105,8 +98,8 @@ Put local settings in ignored `.dev.vars` and production settings in Sites:
 | `CLIQUEFLOWMER_PUBLIC_ORIGIN` | Same exact origin configured on the API |
 
 The local proxy validates the browser's local origin and supplies the configured
-public origin upstream. It forwards only the demo session cookie, never Sites
-authentication cookies. Redirects from the CPU service are rejected.
+public origin upstream. It forwards only the demo session cookie; unrelated
+browser cookies stay private. Redirects from the CPU service are rejected.
 
 On grace's older Ubuntu installation, the current Cloudflare preview runtime
 needs a newer glibc. An isolated copy is available in `.cache-demo/glibc`; set
@@ -114,12 +107,10 @@ needs a newer glibc. An isolated copy is available in `.cache-demo/glibc`; set
 Node 22 is also available in `.venv-demo/lib/python3.11/site-packages/playwright/driver`.
 These are local compatibility aids, not production dependencies.
 
-The canonical website source stays in `site/` within this GitHub repository.
-The Sites publishing helper uses a separate checkout at
-`.cache-demo/website-publish/` so it cannot alter the main repository's Git
-history. Copy changed source into that checkout, excluding Git metadata,
-dependencies, builds, secrets, and local tool state; then follow the Sites
-source/build/package/deploy workflow with the existing Site ID.
+The canonical website source is `site/` in this repository. Use `npm run build`
+for a local production build, `npm run typecheck` for TypeScript, and
+`npm run deploy:cloudflare` to publish to the configured Cloudflare account.
+The earlier Sites preview scaffolding has been removed.
 
 ## Scientific and resource limits
 
@@ -143,12 +134,14 @@ source/build/package/deploy workflow with the existing Site ID.
 
 ## Verification
 
-The new HTTP tests cover session ownership, signature tampering, origin/key
+The HTTP tests cover session ownership, signature tampering, origin/key
 checks, invalid input, body limits, busy responses, cancellation, expiration,
-and bounded retention. Install `httpx==0.28.1` for the test client and run:
+and bounded retention. From the repository root, run:
 
 ```bash
-python -m unittest discover -s tests -p 'test_*.py' -v
+python -m pip install -r requirements-dev.txt
+npm ci --prefix serving/website/site
+python -m pytest tests -q
 ```
 
 The representation export test reads browser-generated files with Python's

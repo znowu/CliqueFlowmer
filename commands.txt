@@ -1,7 +1,0 @@
-To train the CliqueFlowmer model:
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun     --nproc_per_node=8     --nnodes=1     --node_rank=0     --master_addr=localhost     --master_port=12346     train.py
-
-
-To optimize the materials using the model:
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python optimize.py
-

@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use CliqueFlowmer, please cite the paper below."
+title: CliqueFlowmer
+abstract: "Offline crystal representation learning and materials optimization with clique and flow models."
+type: software
+license: MIT
+repository-code: "https://github.com/znowu/CliqueFlowmer"
+url: "https://cliqueflowmer.znowu.workers.dev"
+authors:
+  - family-names: Kuba
+    given-names: Jakub Grudzien
+  - family-names: Miller
+    given-names: Benjamin Kurt
+  - family-names: Levine
+    given-names: Sergey
+  - family-names: Abbeel
+    given-names: Pieter
+preferred-citation:
+  type: article
+  title: "Offline Materials Optimization with CliqueFlowmer"
+  authors:
+    - family-names: Kuba
+      given-names: Jakub Grudzien
+    - family-names: Miller
+      given-names: Benjamin Kurt
+    - family-names: Levine
+      given-names: Sergey
+    - family-names: Abbeel
+      given-names: Pieter
+  journal: "arXiv preprint arXiv:2603.06082"
+  year: 2026
+  url: "https://arxiv.org/abs/2603.06082"
+  notes: "Accepted at NeurIPS 2026; proceedings metadata pending."

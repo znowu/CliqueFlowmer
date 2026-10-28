@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import tensorflow as tf 
 
 import os 
 import wandb
@@ -22,7 +21,6 @@ from matgl.ext.ase import M3GNetCalculator
 from ase.optimize import FIRE, LBFGS
 
 from matgl import load_model
-from m3gnet.models import M3GNet
 from models import CliqueFlowmer, Transformer
 import models.graphops as graphops
 
@@ -228,8 +226,12 @@ def main(_):
     model_path = os.path.join(model_dir, model_spec)
     response = saving.load_model_state_dict_from_gcs(bucket, model_path, model)
 
-    if response is not None:
-        model = response 
+    if response is None:
+        raise FileNotFoundError(
+            f"Model checkpoint not found: gs://{bucket}/{model_path}.pth. "
+            "Train the model first or check the storage bucket and model configuration."
+        )
+    model = response
 
     model = nn.DataParallel(model).to(device)
     model.eval()

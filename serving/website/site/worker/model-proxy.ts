@@ -73,7 +73,7 @@ export async function modelProxy(
     Origin: env.CLIQUEFLOWMER_PUBLIC_ORIGIN,
     "x-cliqueflowmer-key": env.CLIQUEFLOWMER_API_KEY,
   });
-  // Do not forward ChatGPT authentication or unrelated browser cookies upstream.
+  // Forward only the model session; unrelated browser cookies stay private.
   const cookie = request.headers
     .get("Cookie")
     ?.split(";")

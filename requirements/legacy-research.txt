@@ -1,0 +1,23 @@
+# Historical research environment snapshot, retained for provenance.
+# NOT a supported installation lock: it contains incompatible NumPy/TensorFlow
+# pins and omits the CUDA index and Google Cloud Storage dependency.
+# See docs/research.md before attempting to reconstruct the oracle environment.
+absl_py==2.1.0
+ase==3.26.0
+m3gnet==0.2.4
+matbench==0.6
+matgl==1.2.1
+matplotlib==3.10.8
+ml_collections==0.1.1
+monty==2025.3.3
+numpy==2.4.2
+pandas==3.0.1
+Pillow==12.1.1
+protobuf==7.34.0
+py3Dmol==2.5.4
+pymatgen==2023.12.18
+spglib==2.7.0
+tensorflow==2.15.0
+torch==2.2.0+cu121
+tqdm==4.67.1
+wandb==0.15.12

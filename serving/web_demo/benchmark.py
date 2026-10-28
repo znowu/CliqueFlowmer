@@ -26,7 +26,7 @@ def main():
     model = load_pinned_model()
     report = {
         "python": platform.python_version(), "platform": platform.platform(),
-        "packages": {name: importlib.metadata.version(name) for name in ("torch", "numpy", "pymatgen", "streamlit")},
+        "packages": {name: importlib.metadata.version(name) for name in ("torch", "numpy", "pymatgen")},
         "checkpoint": MANIFEST, "device": "cpu", "torch_threads": __import__("torch").get_num_threads(),
         "model_load_seconds": time.monotonic() - started,
         "operation": args.operation, "budget": args.budget, "seed": args.seed,

@@ -1,8 +1,8 @@
 # Public Cloudflare website
 
-This is a second build target for the existing React UI. It deploys static HTML,
+This deploys the React UI as static HTML,
 CSS, JavaScript, and the bundled crystal viewer, plus a small `/api/*` Worker
-proxy. PyTorch stays on **grace**. The existing Sites build remains available.
+proxy. PyTorch stays on **grace**.
 
 The approved public address is **https://cliqueflowmer.znowu.workers.dev**.
 A `workers.dev` address needs no domain purchase. Keep the account on the **Workers Free** plan;
@@ -89,10 +89,10 @@ Limits and hosting policy were checked on 2026-10-28.
 
 ## Current Grace connection
 
-The initial public deployment shares the existing CPU service with the private
-Sites preview. Both proxies supply the API's configured trusted origin upstream;
-each proxy independently checks that browser POSTs originate from its own
-website. This allows both frontends to use the same service securely.
+The proxy supplies the CPU API's configured trusted origin upstream and checks
+that browser POSTs originate from the public website. The configured API origin
+is an exact string; keep it consistent on both sides when changing deployment
+settings.
 
 The Grace process uses `.cache-demo/website-runtime.json` at the repository root.
 Its current backend connection is a Quick Tunnel, so a Grace or tunnel restart

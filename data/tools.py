@@ -1855,7 +1855,7 @@ def refine_to_primitive_fast_strong(
 _megnet_bg = load_model("MEGNet-MP-2019.4.1-BandGap-mfi")
 
 # Fidelity index mapping from MatGL tutorial:
-# 0: PBE, 1: GLLB-SC, 2: HSE, 3: SCAN  :contentReference[oaicite:1]{index=1}
+# 0: PBE, 1: GLLB-SC, 2: HSE, 3: SCAN
 _FIDELITY = {"PBE": 0, "GLLB-SC": 1, "HSE": 2, "SCAN": 3}
 
 

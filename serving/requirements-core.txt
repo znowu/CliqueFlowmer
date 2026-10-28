@@ -1,0 +1,9 @@
+# Shared CPU inference dependencies, validated on Linux / Python 3.11.
+-c web_demo/constraints.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1+cpu
+pymatgen==2026.10.24
+numpy==2.4.6
+pandas==3.1.0
+huggingface-hub==0.36.2
+tqdm==4.70.1

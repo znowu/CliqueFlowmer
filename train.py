@@ -18,8 +18,6 @@ import models.graphops as graphops
 import data.tools as tools
 import saving
 
-from matbench.bench import MatbenchBenchmark
-
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('seed', int(37), 'Random seed.') 

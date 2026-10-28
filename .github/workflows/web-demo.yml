@@ -1,4 +1,4 @@
-name: CPU web demo
+name: Release checks
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,13 +20,45 @@ jobs:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: |
+            requirements-dev.txt
+            serving/requirements-core.txt
+            serving/website/requirements.txt
             serving/web_demo/requirements.txt
             serving/web_demo/constraints.txt
-      - name: Install isolated CPU inference dependencies
-        run: python -m pip install -r serving/web_demo/requirements.txt pytest==9.2.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: serving/website/site/package-lock.json
+      - name: Install CPU inference and test dependencies
+        run: python -m pip install -r requirements-dev.txt
       - run: python -m pip check
-      - name: Core, serving, and UI regression tests
+      - name: Install frontend dependencies for representation export checks
+        run: npm ci --prefix serving/website/site
+      - name: Model, inference, API, and export regression tests
         run: python -m pytest tests -q
       - name: Real published-checkpoint smoke test
         if: github.event_name == 'workflow_dispatch'
         run: python -m serving.web_demo.benchmark
+
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: serving/website/site
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      WRANGLER_WRITE_LOGS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: serving/website/site/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Validate Cloudflare Worker without publishing
+        run: npm run check:cloudflare

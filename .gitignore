@@ -1,11 +1,52 @@
-__pycache__
-wandb
-matenv
+# Python environments and generated caches
+__pycache__/
+*.py[cod]
+.venv*/
+venv/
+matenv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Credentials and machine-local configuration
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
 api_key.py
+*.pem
+*.key
+.agents/
+.codex/
+.aws/
+
+# Training data, checkpoints, and run artifacts are distributed separately
+wandb/
+*.pickle
+*.pkl
+*.pth
+*.pt
 /mp20/
 /mp20-bandgap/
-.venv-demo/
-.venv-demo-clean/
+/alexandria_50meV/
+/alexandria_pbe_2024_12_15/
+/data/preprocessed/
+/models/states/
+
+# Local deployment state and unpublished research work
 .cache-demo/
-.pytest_cache/
+.local-research/
 serving/web_demo/benchmark-results.local.json
+serving/website/design_proposals/
+
+# Retain working manuscripts locally; publish the clean source in paper/
+/CliqueFlowmer_camera_ready/
+/CliqueFlowmer_camera_ready_sources.zip
+/CliqueFlowmer_arxiv*.zip
+/CliqueFlowmer_arxiv*.pdf
+/CliqueFlowmer_neurips.pdf
+
+.DS_Store

@@ -1,25 +1,30 @@
----
-title: CliqueFlowmer
-emoji: 🧪
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 5.0.0
-app_file: app.py
-pinned: false
----
+# CliqueFlowmer inference and demos
 
-For the maintained CPU-only upload → optimize → visualize demo, see
-[web_demo/README.md](web_demo/README.md). It uses its own dependency lock and can
-be deployed on free Streamlit Community Cloud hosting.
+**[Open the live crystal workspace](https://cliqueflowmer.znowu.workers.dev)**
 
-The Gradio app in this directory is the legacy demo for the paper
-**Offline Materials Optimization with CliqueFlowmer**.
+Upload one CIF, inspect its representation, reconstruct or optimize a candidate,
+and rotate and download the resulting structure. No installation is needed for
+the public website.
 
-This Space supports:
-- CIF → latent
-- CIF → latent → reconstruction
-- latent → CIF
+| Component | Purpose |
+| --- | --- |
+| [website/](website/README.md) | Maintained custom website, Cloudflare proxy, and CPU API |
+| [web_demo/](web_demo/README.md) | Shared bounded inference service and optional Streamlit UI |
+| [inference.py](inference.py) | Python encoding, decoding, reconstruction, and optimization helpers |
+| [data_tools.py](data_tools.py) | Lightweight structure conversion and length-prior helpers |
+| [relaxation.py](relaxation.py) | Optional research relaxation with the separate MatGL stack |
 
-Paper: https://huggingface.co/papers/2603.06082
-Code: https://github.com/znowu/CliqueFlowmer
+The maintained demos share a revision- and checksum-pinned public checkpoint,
+three example CIFs, and a JSON length prior. They run on CPU without training
+datasets, MatGL, or DGL. Start with the linked deployment instructions or install
+the Python inference dependencies from the repository root:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+The superseded Gradio/Colab entrypoint and conflicting installation lists were
+removed. Their history remains in Git. The research inference helpers, including
+optional relaxation, are retained; see [research setup](../docs/research.md).

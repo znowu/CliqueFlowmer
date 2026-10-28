@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createLiquidSurface, type LiquidRenderer } from "@/lib/liquid-surface";
+import { createLiquidSurface, type LiquidRenderer } from "../lib/liquid-surface";
 
 const MOTION_PREFERENCE = "cliqueflowmer-liquid-motion";
 
