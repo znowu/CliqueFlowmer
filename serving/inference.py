@@ -180,7 +180,7 @@ def decode_latent(
     if relax:
         structure = data_tools.refine_to_primitive_fast_strong(structure)
 
-    return structures[0]
+    return structure
 
 
 def reconstruct_structure(
