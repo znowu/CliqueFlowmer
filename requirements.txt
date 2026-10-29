@@ -1,4 +1,3 @@
 # Supported CPU inference environment, Python 3.11.
-# Website/API: serving/website/requirements.txt
 # Historical training/oracle environment: docs/research.md
 -r serving/requirements-core.txt

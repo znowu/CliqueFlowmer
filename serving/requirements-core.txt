@@ -1,5 +1,5 @@
 # Shared CPU inference dependencies, validated on Linux / Python 3.11.
--c web_demo/constraints.txt
+-c ../requirements/inference-constraints.txt
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.14.1+cpu
 pymatgen==2026.10.24

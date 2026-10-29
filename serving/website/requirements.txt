@@ -1,4 +1,0 @@
-# CPU API, Python 3.11.
--r ../requirements-core.txt
-starlette==1.10.0
-uvicorn==0.54.0

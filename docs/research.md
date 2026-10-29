@@ -1,8 +1,8 @@
 # Research setup and reproducibility scope
 
-The supported public demo is documented in [the root README](../README.md).
 This page describes the original research scripts, whose dependency and data
-requirements are different from the CPU demo.
+requirements are different from the lightweight Python inference environment
+documented in [the root README](../README.md).
 
 ## What is included
 
@@ -10,10 +10,12 @@ The reference CliqueFlowmer and transformer architectures, ES and gradient
 learners, MP20 configurations, distributed training, structure conversion,
 relaxation helpers, property evaluation, and S.U.N. utilities are included.
 The public checkpoint and its length prior are identified in
-[the checkpoint manifest](../serving/web_demo/checkpoint.json). Checkpoints and
+[the checkpoint manifest](../serving/checkpoint.json). This convenience
+checkpoint uses Alexandria pretraining and MP20 fine-tuning; the paper's
+reported experiments use MP20-only models. Checkpoints and
 training datasets are distributed separately from Git.
 
-The camera-ready manuscript documents experimental settings and DFT processing.
+The [paper](https://arxiv.org/abs/2603.06082) documents experimental settings and DFT processing.
 The release does not include a self-contained rerun of all DFT calculations,
 baselines, or full training. The unpublished Alexandria preprocessing/training
 experiments are not presented as validated reproduction scripts.
@@ -34,7 +36,7 @@ The research scripts additionally need `absl-py`, `ml-collections`, Weights &
 Biases, Google Cloud Storage, ASE, plotting tools, and the MatGL property/force
 models used by the paper. `data/tools.py` still imports the research stack and
 loads the MEGNet band-gap model at module import. Keep this environment separate
-from the demo. The cleanup removes unused TensorFlow, legacy M3GNet, and Matbench
+from lightweight inference. The cleanup removes unused TensorFlow, legacy M3GNet, and Matbench
 imports, but does not certify a newly resolved full research environment.
 
 ## Data and storage
@@ -81,9 +83,7 @@ validated command path in this release.
 ## Verification boundaries
 
 The release checks cover tensor-helper parity, lightweight import boundaries,
-inference and decoder behavior, bounded CPU jobs, API ownership and input
-validation, browser representation exports, TypeScript, and the production
-website build. Browser smoke checks use the actual published checkpoint.
-The camera-ready source package is compiled and compared with the approved
-manuscript. Full distributed training, external oracle evaluation, and DFT
-calculations were not rerun during repository cleanup.
+inference and decoder behavior, checkpoint verification, and latent optimization.
+A manually triggered CI run also exercises encoding and latent optimization
+with the actual published checkpoint. Full distributed training, external
+oracle evaluation, and DFT calculations were not rerun during repository cleanup.

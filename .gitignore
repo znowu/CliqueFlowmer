@@ -39,10 +39,14 @@ wandb/
 # Local deployment state and unpublished research work
 .cache-demo/
 .local-research/
-serving/web_demo/benchmark-results.local.json
-serving/website/design_proposals/
+/serving/web_demo/
+/serving/website/
+/.streamlit/
+# Retained locally for the separately maintained demo.
+/.github/workflows/web-demo.yml
 
-# Retain working manuscripts locally; publish the clean source in paper/
+# Manuscripts and submission packages are maintained locally, outside the public tree.
+/paper/
 /CliqueFlowmer_camera_ready/
 /CliqueFlowmer_camera_ready_sources.zip
 /CliqueFlowmer_arxiv*.zip

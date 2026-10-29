@@ -1,0 +1,52 @@
+name: Research code checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+            requirements/inference-constraints.txt
+            serving/requirements-core.txt
+      - name: Install inference and test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip check
+      - name: Core model and inference regression tests
+        run: python -m pytest tests -q
+      - name: Published-checkpoint smoke test
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python - <<'PY'
+          import torch
+          from pymatgen.core import Structure
+          from serving.pretrained import load_pretrained_model
+          from serving.inference import encode_structure, optimize_es
+
+          model = load_pretrained_model(device="cpu")
+          structure = Structure.from_file("examples/silicon.cif")
+          latent = encode_structure(model, structure)
+          assert latent.shape == (121,) and torch.isfinite(latent).all()
+          optimized, score = optimize_es(model, latent, steps=10)
+          assert optimized.shape == (1, 121) and torch.isfinite(optimized).all()
+          assert torch.isfinite(torch.as_tensor(score)).all()
+          print("Published checkpoint: encoding and latent optimization passed.")
+          PY
