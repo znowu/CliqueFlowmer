@@ -1,9 +1,9 @@
-name: Research code checks
+name: Inference and core model checks
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [inference]
   workflow_dispatch:
 
 permissions:

@@ -1,4 +1,8 @@
-# CliqueFlowmer
+# CliqueFlowmer — Standalone Inference
+
+This branch provides standalone checkpoint loading, crystal encoding, reconstruction,
+and latent optimization. For the paper’s research experiments, use
+[`main`](https://github.com/znowu/CliqueFlowmer/tree/main).
 
 **Optimize Crystals with Clique and Flow Models** · Accepted at **NeurIPS 2026**
 
