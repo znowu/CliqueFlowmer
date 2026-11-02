@@ -1,19 +1,20 @@
 # Research setup and reproducibility scope
 
-This page describes the original research scripts, whose dependency and data
-requirements are different from the lightweight Python inference environment
-documented in [the root README](../README.md).
+This page describes the paper's research scripts on `main`, including their
+dependency, data, and evaluation requirements. Standalone Python inference
+has its own setup on the
+[`inference` branch](https://github.com/znowu/CliqueFlowmer/tree/inference).
 
 ## What is included
 
 The reference CliqueFlowmer and transformer architectures, ES and gradient
 learners, MP20 configurations, distributed training, structure conversion,
 relaxation helpers, property evaluation, and S.U.N. utilities are included.
-The public checkpoint and its length prior are identified in
-[the checkpoint manifest](../serving/checkpoint.json). This convenience
-checkpoint uses Alexandria pretraining and MP20 fine-tuning; the paper's
-reported experiments use MP20-only models. Checkpoints and
-training datasets are distributed separately from Git.
+The paper's reported experiments use MP20-only models. The
+[released model weights](https://huggingface.co/iamkuba/CliqueFlowmer) also
+include a separate Alexandria-pretrained, MP20-fine-tuned convenience model;
+that model is not a replacement for the paper's experimental checkpoints.
+Checkpoints and training datasets are distributed separately from Git.
 
 The [paper](https://arxiv.org/abs/2603.06082) documents experimental settings and DFT processing.
 The release does not include a self-contained rerun of all DFT calculations,
@@ -22,8 +23,11 @@ experiments are not presented as validated reproduction scripts.
 
 ## Environments
 
-`requirements.txt` now installs the tested **CPU inference** stack. Install it
-in its own Python 3.11 environment. It does not install the research oracles.
+`requirements.txt` installs only the **CPU core-model dependencies** (PyTorch
+and NumPy); `requirements-dev.txt` adds the test runner. These support the
+core checks described below, using Python 3.11 on Linux. They do not install
+the distributed-training tools, structure libraries, or property models
+needed by `train.py` and `optimize.py`.
 
 [requirements/legacy-research.txt](../requirements/legacy-research.txt) preserves
 the previous research dependency list for provenance. **Do not use it as a
@@ -36,8 +40,9 @@ The research scripts additionally need `absl-py`, `ml-collections`, Weights &
 Biases, Google Cloud Storage, ASE, plotting tools, and the MatGL property/force
 models used by the paper. `data/tools.py` still imports the research stack and
 loads the MEGNet band-gap model at module import. Keep this environment separate
-from lightweight inference. The cleanup removes unused TensorFlow, legacy M3GNet, and Matbench
-imports, but does not certify a newly resolved full research environment.
+from the core-check environment. Unused TensorFlow, legacy M3GNet, and Matbench
+imports have been removed; a newly resolved full research environment has not
+been certified.
 
 ## Data and storage
 
@@ -82,8 +87,9 @@ validated command path in this release.
 
 ## Verification boundaries
 
-The release checks cover tensor-helper parity, lightweight import boundaries,
-inference and decoder behavior, checkpoint verification, and latent optimization.
-A manually triggered CI run also exercises encoding and latent optimization
-with the actual published checkpoint. Full distributed training, external
-oracle evaluation, and DFT calculations were not rerun during repository cleanup.
+Checks on `main` cover tensor-helper parity with the research implementation,
+periodic distances, padding and masks, and core model import boundaries. They
+do not load checkpoints or evaluate material properties. Standalone inference
+and checkpoint tests remain on the `inference` branch. Full distributed
+training, external oracle evaluation, and DFT calculations were not rerun
+during repository cleanup.

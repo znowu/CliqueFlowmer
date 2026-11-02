@@ -1,2 +1,3 @@
+# Core-model regression checks; no hosted-demo or checkpoint dependencies.
 -r requirements.txt
 pytest==9.2.0

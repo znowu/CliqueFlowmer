@@ -1,4 +1,4 @@
-"""Regression checks for extracting inference from the research dependency stack."""
+"""Core model imports and tensor-helper parity with the research implementation."""
 
 import ast
 from copy import deepcopy
@@ -95,7 +95,7 @@ class TensorHelperTests(unittest.TestCase):
 
 
 class ImportBoundaryTests(unittest.TestCase):
-    def test_core_model_and_serving_helpers_do_not_import_optional_stacks(self):
+    def test_core_model_helpers_do_not_import_optional_stacks(self):
         script = """
 import importlib.abc
 import sys
@@ -110,9 +110,7 @@ sys.meta_path.insert(0, RejectOptionalImports())
 import models
 assert 'models.cliqueflowmer' not in sys.modules
 import data.tensor_tools
-import serving.data_tools
 from models import CliqueFlowmer, Flow
-assert 'serving.relaxation' not in sys.modules
 assert 'models.transformer' not in sys.modules
 assert CliqueFlowmer is models.CliqueFlowmer
 """
