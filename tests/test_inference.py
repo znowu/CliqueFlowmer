@@ -214,12 +214,12 @@ class InferenceTests(unittest.TestCase):
                     patch.object(inference.data_tools, "normal_lengths_from_mle", return_value="prior"), \
                     patch.object(inference, "load_model_from_checkpoint", return_value="model") as load:
                 result = inference.load_model_from_hf(
-                    "approved/repo", "model.pt", model_kwargs=supplied, device="cpu", revision="abc123",
+                    "approved/repo", "model.pt", model_kwargs=supplied, device="cpu", revision="test-checkpoint-revision",
                 )
         self.assertEqual(result, "model")
         self.assertEqual(supplied, {"n_cliques": 2})
         self.assertEqual(inference.DEFAULT_MODEL_KWARGS, defaults)
-        self.assertTrue(all(call.kwargs["revision"] == "abc123" for call in download.call_args_list))
+        self.assertTrue(all(call.kwargs["revision"] == "test-checkpoint-revision" for call in download.call_args_list))
         self.assertEqual(download.call_count, 2)
         self.assertEqual(load.call_args.kwargs["model_kwargs"]["initial_length_dist"], "prior")
 
